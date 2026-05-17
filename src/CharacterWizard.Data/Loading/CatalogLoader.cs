@@ -83,27 +83,54 @@ public sealed class CatalogLoader
             return new List<T>();
         }
 
+        // First pass: index every non-_copy entry by (name|source) so child
+        // entries can reference them. We snapshot the JsonElement (clone) so
+        // it survives the JsonDocument's lifetime.
+        var parentIndex = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in arrayElement.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object) continue;
+            if (item.TryGetProperty("_copy", out _)) continue;
+            if (TryEntityKey(item, out var key)) parentIndex[key] = item.Clone();
+        }
+
         var result = new List<T>(arrayElement.GetArrayLength());
         foreach (var item in arrayElement.EnumerateArray())
         {
-            // Skip "_copy" entries — they reference another entry by name and require
-            // a separate resolution pass. For the MVP we just skip them so we don't
-            // get half-populated records. TODO: implement copy resolution.
-            if (item.ValueKind == JsonValueKind.Object && item.TryGetProperty("_copy", out _))
-                continue;
+            JsonElement effective;
+            var copyRef = CopyResolver.GetCopyRef(item);
+            if (copyRef is { } cr)
+            {
+                var parentKey = $"{cr.Name}|{cr.Source}";
+                if (!parentIndex.TryGetValue(parentKey, out var parent))
+                    continue; // parent not found — drop the child silently
+                effective = CopyResolver.Merge(parent, item);
+            }
+            else
+            {
+                effective = item;
+            }
 
             try
             {
-                var parsed = item.Deserialize<T>(JsonOptions);
+                var parsed = effective.Deserialize<T>(JsonOptions);
                 if (parsed is not null) result.Add(parsed);
             }
             catch (JsonException)
             {
                 // Schema mismatch on this entry — skip rather than crash the entire catalog.
-                // Surfacing these in a structured way is a follow-up.
             }
         }
 
         return result;
+    }
+
+    private static bool TryEntityKey(JsonElement item, out string key)
+    {
+        key = "";
+        if (!item.TryGetProperty("name", out var n) || n.ValueKind != JsonValueKind.String) return false;
+        if (!item.TryGetProperty("source", out var s) || s.ValueKind != JsonValueKind.String) return false;
+        key = $"{n.GetString()}|{s.GetString()}";
+        return true;
     }
 }
