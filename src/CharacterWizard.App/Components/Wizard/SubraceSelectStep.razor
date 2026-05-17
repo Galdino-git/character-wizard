@@ -1,0 +1,46 @@
+@using CharacterWizard.App.Components.Shared
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
+@inject CharacterDraft Draft
+@inject RaceRepository RaceRepo
+
+<h3>Subraça</h3>
+
+@if (Draft.RaceRef is not { } raceRef)
+{
+    <div class="text-muted">Selecione uma raça primeiro.</div>
+}
+else
+{
+    var subraces = RaceRepo.SubracesOf(raceRef).ToList();
+    if (subraces.Count == 0)
+    {
+        <div class="text-muted">Esta raça não tem subraças. Você pode avançar.</div>
+    }
+    else
+    {
+        <p class="text-muted small">Variações da @raceRef.Name com bônus e features distintos.</p>
+        <div class="row g-3">
+            @foreach (var sr in subraces)
+            {
+                var name = sr.Name ?? "(sem nome)";
+                var selected = string.Equals(Draft.SubraceName, name, StringComparison.OrdinalIgnoreCase);
+                <div class="col-md-4 col-lg-3">
+                    <div class="card h-100 @(selected ? "border-primary" : "")"
+                         style="cursor:pointer" @onclick="() => Pick(name)">
+                        <div class="card-body p-2">
+                            <div class="fw-semibold">@name</div>
+                            <div class="small text-muted">@sr.Source</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    private void Pick(string name) => Draft.SubraceName = name;
+}

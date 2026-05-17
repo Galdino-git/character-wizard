@@ -4,10 +4,14 @@
 @using CharacterWizard.App.Services
 @using CharacterWizard.Core.Models
 @using CharacterWizard.Core.Persistence
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
 @using CharacterWizard.Data.Search
 @inject CharacterDraft Draft
 @inject CharacterStore Store
 @inject SearchService Searcher
+@inject RaceRepository RaceRepo
+@inject ClassRepository ClassRepo
 @inject NavigationManager Nav
 
 <div class="d-flex justify-content-between align-items-start">
@@ -48,37 +52,48 @@
                    Ref="_assistDetailRef"
                    OnClose="() => _assistDetailOpen = false" />
 
-<ul class="nav nav-pills mb-3">
-    @for (int i = 0; i < _steps.Length; i++)
+@{
+    var steps = BuildSteps();
+    if (_stepIndex >= steps.Count) _stepIndex = steps.Count - 1;
+    var current = steps[_stepIndex];
+}
+
+<ul class="nav nav-pills mb-3 flex-wrap">
+    @for (int i = 0; i < steps.Count; i++)
     {
         var idx = i;
+        var label = steps[i];
         <li class="nav-item">
             <button type="button"
-                    class="nav-link @(idx == _step ? "active" : "")"
-                    @onclick="() => Go(idx)">
-                @(idx + 1). @_steps[idx]
+                    class="nav-link @(idx == _stepIndex ? "active" : "")"
+                    @onclick="() => _stepIndex = idx">
+                @(idx + 1). @label
             </button>
         </li>
     }
 </ul>
 
 <div class="wizard-step">
-    @switch (_step)
+    @switch (current)
     {
-        case 0: <BasicsStep />        break;
-        case 1: <RaceSelectStep />    break;
-        case 2: <ClassSelectStep />   break;
-        case 3: <BackgroundSelectStep /> break;
-        case 4: <AbilitiesStep />     break;
-        case 5: <ReviewStep />        break;
+        case "Origem":       <BasicsStep />        break;
+        case "Raça":         <RaceSelectStep />    break;
+        case "Subraça":      <SubraceSelectStep /> break;
+        case "Classe":       <ClassSelectStep />   break;
+        case "Subclass":     <SubclassSelectStep /> break;
+        case "Background":   <BackgroundSelectStep /> break;
+        case "Atributos":    <AbilitiesStep />     break;
+        case "Spells":       <SpellSelectStep />   break;
+        case "Equipamento":  <EquipmentStep />     break;
+        case "Revisão":      <ReviewStep />        break;
     }
 </div>
 
 <div class="mt-4 d-flex justify-content-between">
-    <button class="btn btn-outline-secondary" disabled="@(_step == 0)" @onclick="Prev">&larr; Voltar</button>
-    @if (_step < _steps.Length - 1)
+    <button class="btn btn-outline-secondary" disabled="@(_stepIndex == 0)" @onclick="Prev">&larr; Voltar</button>
+    @if (_stepIndex < steps.Count - 1)
     {
-        <button class="btn btn-primary" @onclick="Next">Avançar &rarr;</button>
+        <button class="btn btn-primary" @onclick="() => Next(steps.Count)">Avançar &rarr;</button>
     }
     else
     {
@@ -87,15 +102,48 @@
 </div>
 
 @code {
-    private readonly string[] _steps =
-        { "Origem", "Raça", "Classe", "Background", "Atributos", "Revisão" };
-    private int _step;
+    private int _stepIndex;
 
     protected override void OnInitialized() => Draft.Reset();
 
-    private void Go(int i) => _step = Math.Clamp(i, 0, _steps.Length - 1);
-    private void Next() => _step = Math.Min(_step + 1, _steps.Length - 1);
-    private void Prev() => _step = Math.Max(_step - 1, 0);
+    /// <summary>
+    /// Steps are computed on every render based on Draft state. Conditional steps
+    /// (Subraça, Subclass, Spells) appear when they're applicable; the user can
+    /// navigate freely and selections in other steps are preserved by the Draft.
+    /// </summary>
+    private List<string> BuildSteps()
+    {
+        var s = new List<string> { "Origem", "Raça" };
+
+        if (Draft.RaceRef is { } r && RaceRepo.SubracesOf(r).Any())
+            s.Add("Subraça");
+
+        s.Add("Classe");
+
+        if (Draft.ClassRef is { } c &&
+            ClassRepo.Find(c) is { } cls &&
+            cls.SubclassChoiceLevel() is int lvl &&
+            Draft.InitialLevel >= lvl)
+        {
+            s.Add("Subclass");
+        }
+
+        s.Add("Background");
+        s.Add("Atributos");
+
+        if (Draft.ClassRef is { } cc &&
+            ClassRepo.Find(cc) is { SpellcastingAbility: { Length: > 0 } })
+        {
+            s.Add("Spells");
+        }
+
+        s.Add("Equipamento");
+        s.Add("Revisão");
+        return s;
+    }
+
+    private void Next(int count) => _stepIndex = Math.Min(_stepIndex + 1, count - 1);
+    private void Prev() => _stepIndex = Math.Max(_stepIndex - 1, 0);
 
     private void Save()
     {
@@ -104,9 +152,7 @@
         Nav.NavigateTo($"character/{c.Id}");
     }
 
-    // Compêndio assist (F1.4) — non-destructive search overlay; draft state is
-    // preserved because we don't navigate away.
-
+    // Compêndio assist (F1.4)
     private bool _assistOpen;
     private string _assistQuery = "";
     private SearchResultPage? _assistResults;
