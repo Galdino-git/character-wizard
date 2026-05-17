@@ -1,5 +1,7 @@
 # Tasks: Post-Creation Editing (F3)
 
+> Status: **completed (MVP)**. Notas livres ficaram dentro da tab `Buffs & Notas` (mesma tab planejada, evitando criar uma 4ª).
+
 Spec: [`../specs/post-creation-editing.md`](../specs/post-creation-editing.md) · Design: [`../design/post-creation-editing.md`](../design/post-creation-editing.md)
 
 Cada task tem arquivos e critério de done. Commit atômico por task. Marque `[x]` quando done.
@@ -30,20 +32,20 @@ Cada task tem arquivos e critério de done. Commit atômico por task. Marque `[x
 
 ## F3.4 — Tab Buffs com CRUD de AbilityOverrides
 
-- [ ] **T3.4.1** Criar `Components/Pages/CharacterView/BuffsTab.razor` — lista de `AbilityOverride`s + form inline pra adicionar (dropdown de Ability, input numérico de Delta, input de Reason). Botão remover por linha.
-- [ ] **T3.4.2** Mostrar agregado por ability ("CHA total: +2 de buffs").
-- [ ] **T3.4.3** Salvar imediatamente após cada change.
-- [ ] **T3.4.4** Wirear em `CharacterView`.
-- [ ] **T3.4.5** Commit: `feat(app): buffs tab with ability overrides CRUD (F3.4)`.
+- [x] **T3.4.1** Criar `Components/Pages/CharacterView/BuffsTab.razor` — lista de `AbilityOverride`s + form inline pra adicionar (dropdown de Ability, input numérico de Delta, input de Reason). Botão remover por linha.
+- [x] **T3.4.2** Mostrar agregado por ability ("CHA total: +2 de buffs").
+- [x] **T3.4.3** Salvar imediatamente após cada change.
+- [x] **T3.4.4** Wirear em `CharacterView`.
+- [x] **T3.4.5** Commit: `feat(app): buffs tab with ability overrides CRUD (F3.4)`.
 
 ## F3.5 — Notas livres
 
-- [ ] **T3.5.1** Adicionar `<textarea>` bindando `Char.Notes` na tab Buffs & Notas. Salvar onblur.
-- [ ] **T3.5.2** Commit: `feat(app): free-form notes editor in BuffsTab (F3.5)`.
+- [x] **T3.5.1** Adicionar `<textarea>` bindando `Char.Notes` na tab Buffs & Notas. Salvar onblur.
+- [x] **T3.5.2** Commit: `feat(app): free-form notes editor in BuffsTab (F3.5)`.
 
 ## F3.6 — Build final + ROADMAP
 
-- [ ] **T3.6.1** `dotnet test` — todos verdes.
-- [ ] **T3.6.2** `dotnet build src/CharacterWizard.App` — OK.
-- [ ] **T3.6.3** Atualizar `docs/ROADMAP.md` marcando F3 done.
-- [ ] **T3.6.4** Commit: `docs: mark F3 complete in ROADMAP`.
+- [x] **T3.6.1** `dotnet test` — todos verdes.
+- [x] **T3.6.2** `dotnet build src/CharacterWizard.App` — OK.
+- [x] **T3.6.3** Atualizar `docs/ROADMAP.md` marcando F3 done.
+- [x] **T3.6.4** Commit: `docs: mark F3 complete in ROADMAP`.

@@ -56,10 +56,22 @@ Tasks: [`docs/tasks/compendium-search.md`](tasks/compendium-search.md) · [`docs
 
 ---
 
-## 🗺️ M2 — Pós-criação e level-up (a especificar)
+## 🔄 M2 — Pós-criação e level-up
 
-- [ ] Edição de inventário (CRUD de items, custom name, bonus attack/damage/AC)
-- [ ] Edição de overrides de ability (buffs permanentes)
+### ✅ F3 — Post-creation editing (entregue 2026-05-17)
+
+Spec: [`docs/specs/post-creation-editing.md`](specs/post-creation-editing.md) · Tasks: [`docs/tasks/post-creation-editing.md`](tasks/post-creation-editing.md)
+
+- [x] `CharacterView` com tabs (`Ficha` / `Inventário` / `Buffs & Notas`)
+- [x] CRUD de inventário com bônus customizados (CustomName, BonusAttack/Damage/AC, Equipped, Notes)
+- [x] `ItemPickerModal` integrado com `SearchService` (categoria Item)
+- [x] `ItemEditorModal` para edição completa
+- [x] CRUD de `AbilityOverride` (delta + reason) com agregado por ability
+- [x] Editor de notas livres (textarea persistido em `Char.Notes`)
+- [x] Save imediato + backup automático em `_history/` (4 testes novos: 86 verdes total)
+
+### Pendente
+
 - [ ] Wizard de level-up de personagem existente (escolha de class para subir, HP, ASI/feat, spells aprendidos)
 - [ ] Seleção de subclass no wizard de criação (quando o nível inicial >= nível de subclass)
 - [ ] Seleção de subraça
