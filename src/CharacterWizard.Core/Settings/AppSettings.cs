@@ -13,6 +13,9 @@ public sealed class AppSettings
     public List<string> DisabledSources { get; set; } = new();
 
     public Guid? LastOpenedCharacterId { get; set; }
+
+    /// <summary>"light" (default) or "dark".</summary>
+    public string Theme { get; set; } = "light";
 }
 
 public sealed class AppSettingsStore

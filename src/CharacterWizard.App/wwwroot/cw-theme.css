@@ -1,0 +1,116 @@
+/* Dark palette applied when document body has .cw-dark class. */
+
+body.cw-dark {
+    background: #1a1a1a;
+    color: #e6e6e6;
+}
+
+body.cw-dark a {
+    color: #6ea8fe;
+}
+
+body.cw-dark .text-muted {
+    color: #adb5bd !important;
+}
+
+body.cw-dark .navbar-dark {
+    background: #111 !important;
+    border-bottom: 1px solid #333;
+}
+
+body.cw-dark .card,
+body.cw-dark .modal-content,
+body.cw-dark .cw-modal {
+    background: #252525;
+    color: #e6e6e6;
+    border-color: #333;
+}
+
+body.cw-dark .form-control,
+body.cw-dark .form-select {
+    background: #2c2c2c;
+    color: #e6e6e6;
+    border-color: #444;
+}
+
+body.cw-dark .form-control::placeholder { color: #888; }
+
+body.cw-dark .btn-outline-secondary {
+    color: #ccc; border-color: #555;
+}
+body.cw-dark .btn-outline-secondary:hover { background: #333; color: #fff; }
+
+body.cw-dark .list-group-item {
+    background: #252525;
+    color: #e6e6e6;
+    border-color: #333;
+}
+body.cw-dark .list-group-item-action:hover { background: #2f2f2f; }
+
+body.cw-dark .table {
+    color: #e6e6e6;
+    --bs-table-bg: transparent;
+}
+body.cw-dark .table th, body.cw-dark .table td {
+    border-color: #333;
+}
+
+body.cw-dark .badge.bg-light {
+    background: #444 !important; color: #ddd !important;
+}
+
+body.cw-dark .alert-info {
+    background: #1d3a52; color: #cfe2f3; border-color: #2b5b80;
+}
+body.cw-dark .alert-secondary {
+    background: #2a2a2a; color: #ddd; border-color: #444;
+}
+
+body.cw-dark .border, body.cw-dark .border-top, body.cw-dark .border-bottom { border-color: #333 !important; }
+
+body.cw-dark .nav-tabs {
+    border-bottom-color: #333;
+}
+body.cw-dark .nav-tabs .nav-link {
+    color: #ccc;
+}
+body.cw-dark .nav-tabs .nav-link.active {
+    background: #252525;
+    color: #fff;
+    border-color: #333 #333 #252525;
+}
+
+body.cw-dark .nav-pills .nav-link {
+    color: #ccc;
+}
+
+body.cw-dark .cw-roll {
+    background: #3a2e1a;
+    color: #f3c673;
+}
+
+body.cw-dark .cw-inset {
+    background: #2a261a;
+    border-left-color: #b58c4a;
+    color: #f3e5c6;
+}
+
+body.cw-dark .cw-quote {
+    color: #aaa;
+    border-color: #555;
+}
+
+body.cw-dark .cw-ref {
+    color: #6ea8fe;
+    border-bottom-color: #6ea8fe;
+}
+body.cw-dark .cw-ref:hover {
+    background-color: rgba(110, 168, 254, 0.12);
+}
+
+body.cw-dark .bg-light {
+    background: #2a2a2a !important;
+}
+body.cw-dark .bg-light.text-dark { color: #e6e6e6 !important; }
+
+body.cw-dark hr { border-color: #333; }

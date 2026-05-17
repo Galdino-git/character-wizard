@@ -1,4 +1,8 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@using CharacterWizard.Core.Settings
+@inject AppSettings Cfg
+@inject AppSettingsStore Store
+@inject IJSRuntime JS
 
 <div class="page">
     <div class="sidebar">
@@ -6,7 +10,10 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
+        <div class="top-row px-4 d-flex justify-content-end align-items-center gap-2">
+            <button class="btn btn-sm btn-outline-secondary" @onclick="ToggleTheme" title="Alternar tema claro/escuro">
+                @(Cfg.Theme == "dark" ? "☀ Claro" : "🌙 Escuro")
+            </button>
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
@@ -15,3 +22,24 @@
         </article>
     </main>
 </div>
+
+@code {
+    private bool _themeApplied;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || !_themeApplied)
+        {
+            await JS.InvokeVoidAsync("cwTheme.apply", Cfg.Theme);
+            _themeApplied = true;
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        Cfg.Theme = Cfg.Theme == "dark" ? "light" : "dark";
+        Store.Save(Cfg);
+        await JS.InvokeVoidAsync("cwTheme.apply", Cfg.Theme);
+        StateHasChanged();
+    }
+}
