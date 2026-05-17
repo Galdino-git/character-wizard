@@ -6,13 +6,13 @@ Dependência forte: F2.5 (`EntityResolver`) e F2.7 (`EntityDetailPanel`). Pode c
 
 ## F1.1 — SearchService base
 
-- [ ] **T1.1.1** Testes vermelhos em `tests/CharacterWizard.Tests/SearchServiceTests.cs`:
+- [x] **T1.1.1** Testes vermelhos em `tests/CharacterWizard.Tests/SearchServiceTests.cs`:
     - `Search_returns_empty_when_query_empty_and_no_filters`
     - `Search_finds_by_substring_case_insensitive`
     - `Search_ranks_prefix_above_substring`
     - `Search_alphabetic_within_same_rank`
-- [ ] **T1.1.2** Criar `src/CharacterWizard.App/Services/SearchService.cs` + record `SearchEntry`, `SearchResultPage`. Construtor injeta os repositórios. Verify: testes verdes.
-- [ ] **T1.1.3** Commit: `feat(app): SearchService base with substring + prefix ranking`.
+- [x] **T1.1.2** Criar `src/CharacterWizard.App/Services/SearchService.cs` + record `SearchEntry`, `SearchResultPage`. Construtor injeta os repositórios. Verify: testes verdes.
+- [x] **T1.1.3** Commit: `feat(app): SearchService base with substring + prefix ranking`.
 
 ## F1.2 — SearchService filtros e paginação
 
