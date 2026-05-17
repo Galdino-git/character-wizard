@@ -52,12 +52,12 @@ Cada task tem: arquivos afetados · testes · critério de done. **TDD: red → 
 
 ## F2.5 — EntityResolver
 
-- [ ] **T2.5.1** Testes vermelhos em `EntityResolverTests`:
+- [x] **T2.5.1** Testes vermelhos em `EntityResolverTests`:
     - `Resolve_spell_returns_spell_data`
     - `Resolve_unknown_category_returns_null`
     - `Resolve_missing_entity_returns_null`
-- [ ] **T2.5.2** Criar `src/CharacterWizard.Data/Resolving/EntityResolver.cs` com switch por categoria, delegando aos repos. Registrar no DI (App MauiProgram).
-- [ ] **T2.5.3** Commit: `feat(data): EntityResolver dispatches refs to repositories`.
+- [x] **T2.5.2** Criar `src/CharacterWizard.Data/Resolving/EntityResolver.cs` com switch por categoria, delegando aos repos. Registrar no DI (App MauiProgram).
+- [x] **T2.5.3** Commit: `feat(data): EntityResolver dispatches refs to repositories`.
 
 ## F2.6 — EntryDisplay component (Blazor)
 
