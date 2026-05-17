@@ -65,6 +65,125 @@ public class SpellSlotTableTests
 
 public class CharacterStoreTests
 {
+    private static string MakeTempRoot() =>
+        Path.Combine(Path.GetTempPath(), "cw-test-" + Guid.NewGuid());
+
+    [Fact]
+    public void Preserves_multiple_inventory_items_with_bonuses()
+    {
+        var tmp = MakeTempRoot();
+        try
+        {
+            var store = new CharacterStore(tmp);
+            var c = new Character
+            {
+                Name = "Inv Tester",
+                Inventory =
+                {
+                    new InventoryItem { ItemRef = new EntityRef("Longsword", "PHB"),
+                        CustomName = "Espada Élfica +2", BonusAttack = 2, BonusDamage = 2,
+                        Equipped = true, Quantity = 1 },
+                    new InventoryItem { ItemRef = new EntityRef("Healing Potion", "PHB"),
+                        Quantity = 5 },
+                    new InventoryItem { ItemRef = new EntityRef("Plate Armor", "PHB"),
+                        BonusAc = 1, Equipped = true, Notes = "Heirloom" },
+                },
+            };
+
+            store.Save(c);
+            var loaded = store.Load(c.Id)!;
+
+            Assert.Equal(3, loaded.Inventory.Count);
+            var sword = loaded.Inventory[0];
+            Assert.Equal("Espada Élfica +2", sword.CustomName);
+            Assert.Equal(2, sword.BonusAttack);
+            Assert.Equal(2, sword.BonusDamage);
+            Assert.True(sword.Equipped);
+
+            var potion = loaded.Inventory[1];
+            Assert.Equal(5, potion.Quantity);
+
+            var armor = loaded.Inventory[2];
+            Assert.Equal(1, armor.BonusAc);
+            Assert.Equal("Heirloom", armor.Notes);
+        }
+        finally { if (Directory.Exists(tmp)) Directory.Delete(tmp, true); }
+    }
+
+    [Fact]
+    public void Preserves_ability_overrides_list()
+    {
+        var tmp = MakeTempRoot();
+        try
+        {
+            var store = new CharacterStore(tmp);
+            var c = new Character
+            {
+                Name = "Buff Tester",
+                AbilityOverrides =
+                {
+                    new AbilityOverride { Ability = Ability.Cha, Delta = 2, Reason = "Tomo" },
+                    new AbilityOverride { Ability = Ability.Str, Delta = -1, Reason = "Curse" },
+                },
+            };
+
+            store.Save(c);
+            var loaded = store.Load(c.Id)!;
+
+            Assert.Equal(2, loaded.AbilityOverrides.Count);
+            Assert.Equal(Ability.Cha, loaded.AbilityOverrides[0].Ability);
+            Assert.Equal(2, loaded.AbilityOverrides[0].Delta);
+            Assert.Equal("Tomo", loaded.AbilityOverrides[0].Reason);
+            Assert.Equal(-1, loaded.AbilityOverrides[1].Delta);
+        }
+        finally { if (Directory.Exists(tmp)) Directory.Delete(tmp, true); }
+    }
+
+    [Fact]
+    public void Save_creates_history_entry_on_overwrite()
+    {
+        var tmp = MakeTempRoot();
+        try
+        {
+            var store = new CharacterStore(tmp);
+            var c = new Character { Name = "v1" };
+            store.Save(c);
+
+            c.Name = "v2";
+            store.Save(c);
+
+            var historyFolder = Path.Combine(store.HistoryFolder, c.Id.ToString());
+            Assert.True(Directory.Exists(historyFolder), "history folder should exist after second save");
+            var snapshots = Directory.GetFiles(historyFolder, "*.json");
+            Assert.Single(snapshots);
+        }
+        finally { if (Directory.Exists(tmp)) Directory.Delete(tmp, true); }
+    }
+
+    [Fact]
+    public void History_keeps_at_most_five_versions()
+    {
+        var tmp = MakeTempRoot();
+        try
+        {
+            var store = new CharacterStore(tmp);
+            var c = new Character { Name = "v" };
+            store.Save(c);
+
+            // 7 overwrites → 7 backups attempted but capped at 5
+            for (int i = 0; i < 7; i++)
+            {
+                c.Name = $"v{i + 2}";
+                store.Save(c);
+                Thread.Sleep(1100); // ensure distinct timestamp at second granularity
+            }
+
+            var snapshots = Directory.GetFiles(Path.Combine(store.HistoryFolder, c.Id.ToString()), "*.json");
+            Assert.True(snapshots.Length <= 5, $"expected <= 5 snapshots, got {snapshots.Length}");
+        }
+        finally { if (Directory.Exists(tmp)) Directory.Delete(tmp, true); }
+    }
+
     [Fact]
     public void Save_load_roundtrip_preserves_character()
     {
