@@ -3,7 +3,7 @@
 @using CharacterWizard.Core.Settings
 @using CharacterWizard.Data.Models
 @using CharacterWizard.Data.Repositories
-@inject AppSettings Settings
+@inject AppSettings Cfg
 @inject AppSettingsStore SettingsStore
 @inject CatalogProvider Catalog
 @inject BookRepository BookRepo
@@ -96,9 +96,9 @@
 
     protected override void OnInitialized()
     {
-        _enabledGroups = new(Settings.EnabledGroups, StringComparer.OrdinalIgnoreCase);
-        _enabledSourcesOverride = new(Settings.EnabledSources, StringComparer.OrdinalIgnoreCase);
-        _disabledSourcesOverride = new(Settings.DisabledSources, StringComparer.OrdinalIgnoreCase);
+        _enabledGroups = new(Cfg.EnabledGroups, StringComparer.OrdinalIgnoreCase);
+        _enabledSourcesOverride = new(Cfg.EnabledSources, StringComparer.OrdinalIgnoreCase);
+        _disabledSourcesOverride = new(Cfg.DisabledSources, StringComparer.OrdinalIgnoreCase);
     }
 
     private void ToggleGroup(string key, bool on)
@@ -123,11 +123,11 @@
 
     private void SaveAndApply()
     {
-        Settings.EnabledGroups   = _enabledGroups.ToList();
-        Settings.EnabledSources  = _enabledSourcesOverride.ToList();
-        Settings.DisabledSources = _disabledSourcesOverride.ToList();
-        SettingsStore.Save(Settings);
-        Catalog.ApplySettings(Settings);
+        Cfg.EnabledGroups   = _enabledGroups.ToList();
+        Cfg.EnabledSources  = _enabledSourcesOverride.ToList();
+        Cfg.DisabledSources = _disabledSourcesOverride.ToList();
+        SettingsStore.Save(Cfg);
+        Catalog.ApplySettings(Cfg);
         _status = "Aplicado.";
         StateHasChanged();
     }
