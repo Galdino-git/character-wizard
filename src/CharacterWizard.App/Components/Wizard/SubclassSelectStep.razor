@@ -1,3 +1,55 @@
-@* Stub — implementado em F5. *@
+@using CharacterWizard.App.Components.Shared
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
+@inject CharacterDraft Draft
+@inject ClassRepository ClassRepo
+
 <h3>Subclass</h3>
-<div class="text-muted">(em construção)</div>
+
+@if (Draft.ClassRef is not { } classRef)
+{
+    <div class="text-muted">Selecione uma classe primeiro.</div>
+}
+else if (ClassRepo.Find(classRef) is not { } cls)
+{
+    <div class="text-muted">Classe não encontrada no catálogo.</div>
+}
+else
+{
+    var subclasses = ClassRepo.SubclassesOf(classRef).ToList();
+    if (subclasses.Count == 0)
+    {
+        <div class="text-muted">Esta classe não tem subclasses cadastradas.</div>
+    }
+    else
+    {
+        var subclassLevel = cls.SubclassChoiceLevel() ?? 0;
+        <p class="text-muted small">
+            Selecione a subclass de @cls.Name. Disponível a partir do nível @subclassLevel.
+        </p>
+
+        <div class="row g-3">
+            @foreach (var sc in subclasses.OrderBy(s => s.Name))
+            {
+                var selected = Draft.SubclassRef is { Name: var n, Source: var s }
+                            && n == sc.Name && s == sc.Source;
+                <div class="col-md-4 col-lg-3">
+                    <div class="card h-100 @(selected ? "border-primary" : "")"
+                         style="cursor:pointer" @onclick="() => Pick(sc)">
+                        <div class="card-body p-2">
+                            <div class="fw-semibold">@sc.Name</div>
+                            <div class="small text-muted">@sc.Source</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    private void Pick(SubclassData sc) =>
+        Draft.SubclassRef = new EntityRef(sc.Name, sc.Source);
+}

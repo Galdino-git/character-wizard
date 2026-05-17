@@ -4,10 +4,10 @@ Spec: [`../specs/wizard-enrichment.md`](../specs/wizard-enrichment.md) · Design
 
 ## F4 — Subrace
 
-- [ ] **T4.1** Estender `CharacterDraft` com `SubraceName` (e mapear em `ToCharacter`).
-- [ ] **T4.2** Criar `Components/Wizard/SubraceSelectStep.razor` — grid de subraças via `RaceRepo.SubracesOf(Draft.RaceRef)`. Botão ⓘ detalhes (reusar `EntityDetailPanel` com category `race`).
-- [ ] **T4.3** Refatorar `NewCharacter.razor` para passos dinâmicos: adicionar "Subraça" condicional após Raça.
-- [ ] **T4.4** Smoke build + commit `feat(app): subrace selection step (F4)`.
+- [x] **T4.1** Estender `CharacterDraft` com `SubraceName` (e mapear em `ToCharacter`).
+- [x] **T4.2** Criar `Components/Wizard/SubraceSelectStep.razor` — grid de subraças via `RaceRepo.SubracesOf(Draft.RaceRef)`. Botão ⓘ detalhes (reusar `EntityDetailPanel` com category `race`).
+- [x] **T4.3** Refatorar `NewCharacter.razor` para passos dinâmicos: adicionar "Subraça" condicional após Raça.
+- [x] **T4.4** Smoke build + commit `feat(app): subrace selection step (F4)`.
 
 ## F5 — Subclass
 
