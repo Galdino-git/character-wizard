@@ -1,0 +1,135 @@
+/* Inline entity references and their hover tooltips, plus structural styling
+   for entries rendered by EntryRenderer. Pure CSS — no JS needed for tooltip. */
+
+.cw-ref {
+    cursor: pointer;
+    color: #0a58ca;
+    border-bottom: 1px dotted #0a58ca;
+    text-decoration: none;
+    transition: background-color 0.15s;
+}
+
+.cw-ref:hover {
+    background-color: rgba(10, 88, 202, 0.08);
+}
+
+.cw-ref::after {
+    content: attr(data-cw-name) " (" attr(data-cw-source) ")";
+    position: fixed;
+    background: #1a1a1a;
+    color: #f4f4f4;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    white-space: pre-wrap;
+    max-width: 320px;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transform: translate(-50%, -100%) translateY(-6px);
+    left: var(--cw-tip-x, 50%);
+    top:  var(--cw-tip-y, 0);
+    transition: opacity 0.15s;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+
+.cw-ref:hover::after {
+    opacity: 1;
+}
+
+.cw-roll {
+    background: #f3eee5;
+    border-radius: 3px;
+    padding: 0 4px;
+    font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+    font-size: 0.9em;
+    color: #6b4423;
+}
+
+.cw-entry-name {
+    font-weight: 600;
+    color: #2c2c2c;
+}
+
+.cw-entries {
+    margin: 0.75rem 0;
+}
+
+.cw-list {
+    margin: 0.5rem 0 0.5rem 1.5rem;
+    padding-left: 1rem;
+}
+
+.cw-inset {
+    border-left: 3px solid #b58c4a;
+    background: #fbf6ec;
+    padding: 0.75rem 1rem;
+    margin: 0.75rem 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.cw-inset-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.cw-table {
+    width: 100%;
+    margin: 0.75rem 0;
+    border-collapse: collapse;
+}
+.cw-table th, .cw-table td {
+    border: 1px solid #ddd;
+    padding: 0.35rem 0.6rem;
+    text-align: left;
+}
+.cw-table thead { background: #f3eee5; }
+.cw-table caption { caption-side: top; font-weight: 600; padding: 0.25rem; }
+
+.cw-quote {
+    border-left: 3px solid #999;
+    padding: 0.25rem 0.75rem;
+    font-style: italic;
+    color: #555;
+    margin: 0.75rem 0;
+}
+
+.cw-note {
+    color: #6c757d;
+}
+
+/* Modal overlay used by EntityDetailPanel */
+.cw-modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1040;
+}
+.cw-modal {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+    z-index: 1050;
+    max-width: 640px;
+    width: 90vw;
+    max-height: 85vh;
+    overflow: auto;
+    padding: 1.25rem 1.5rem;
+}
+.cw-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+.cw-modal-close {
+    background: transparent;
+    border: 0;
+    font-size: 1.25rem;
+    cursor: pointer;
+    line-height: 1;
+}

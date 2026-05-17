@@ -1,0 +1,44 @@
+@using System.Text.Json
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Data.EntryRendering
+@inject IJSRuntime JS
+
+@if (Entries.HasValue)
+{
+    <div class="cw-entries-host" id="@_hostId" @onclick="OnClickAsync">
+        @((MarkupString)EntryRenderer.Render(Entries.Value))
+    </div>
+}
+else if (!string.IsNullOrEmpty(Text))
+{
+    <span class="cw-entries-host" id="@_hostId" @onclick="OnClickAsync">
+        @((MarkupString)EntryRenderer.RenderString(Text))
+    </span>
+}
+
+@code {
+    [Parameter] public JsonElement? Entries { get; set; }
+    [Parameter] public string? Text { get; set; }
+    [Parameter] public EventCallback<EntityRef> OnEntityClicked { get; set; }
+
+    /// <summary>
+    /// Optional category override. When the user clicks a ref we usually trust
+    /// data-cw-cat, but the consuming page can also receive the category as part
+    /// of the callback (since EntityRef itself only carries name+source).
+    /// </summary>
+    [Parameter] public EventCallback<(string Category, EntityRef Ref)> OnEntityClickedFull { get; set; }
+
+    private readonly string _hostId = "cw-host-" + Guid.NewGuid().ToString("N");
+
+    private async Task OnClickAsync(Microsoft.AspNetCore.Components.Web.MouseEventArgs _)
+    {
+        var data = await JS.InvokeAsync<RefData?>("cwRef.getRefDataFromTarget", "#" + _hostId, /* event */ (object?)null);
+        if (data is null || string.IsNullOrEmpty(data.Name)) return;
+
+        var entityRef = new EntityRef(data.Name, data.Source);
+        if (OnEntityClicked.HasDelegate) await OnEntityClicked.InvokeAsync(entityRef);
+        if (OnEntityClickedFull.HasDelegate) await OnEntityClickedFull.InvokeAsync((data.Category, entityRef));
+    }
+
+    private sealed record RefData(string Category, string Name, string Source);
+}

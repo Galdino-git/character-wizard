@@ -16,13 +16,13 @@ Dependência forte: F2.5 (`EntityResolver`) e F2.7 (`EntityDetailPanel`). Pode c
 
 ## F1.2 — SearchService filtros e paginação
 
-- [ ] **T1.2.1** Testes vermelhos:
+- [x] **T1.2.1** Testes vermelhos:
     - `Search_filters_by_category`
     - `Search_filters_by_source`
     - `Search_paginates_results`
     - `Search_total_count_independent_of_page`
-- [ ] **T1.2.2** Estender `SearchService` com parâmetros `categories`, `sources`, `pageSize`, `pageIndex`.
-- [ ] **T1.2.3** Commit: `feat(app): SearchService filters and pagination`.
+- [x] **T1.2.2** Estender `SearchService` com parâmetros `categories`, `sources`, `pageSize`, `pageIndex`.
+- [x] **T1.2.3** Commit: `feat(app): SearchService filters and pagination`.
 
 ## F1.3 — Search page (UI)
 
