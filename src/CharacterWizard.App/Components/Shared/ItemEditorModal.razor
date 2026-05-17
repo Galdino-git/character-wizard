@@ -1,0 +1,103 @@
+@using CharacterWizard.Core.Models
+
+@if (Open && Item is not null)
+{
+    <div class="cw-modal-backdrop" @onclick="Cancel"></div>
+    <div class="cw-modal" role="dialog" aria-modal="true">
+        <div class="cw-modal-header">
+            <div>
+                <div class="text-muted small text-uppercase">@Item.ItemRef.Source · base item</div>
+                <h5 class="mb-0">@(_draftCustomName ?? Item.ItemRef.Name)</h5>
+                <div class="text-muted small">@Item.ItemRef.Name</div>
+            </div>
+            <button class="cw-modal-close" @onclick="Cancel" aria-label="Fechar">✕</button>
+        </div>
+
+        <div class="row g-2">
+            <div class="col-12">
+                <label class="form-label small">Nome customizado</label>
+                <input class="form-control form-control-sm" @bind="_draftCustomName"
+                       placeholder="@Item.ItemRef.Name" />
+            </div>
+            <div class="col-4">
+                <label class="form-label small">Quantidade</label>
+                <input type="number" class="form-control form-control-sm" min="0" @bind="_draftQuantity" />
+            </div>
+            <div class="col-4">
+                <label class="form-label small">+ Atq</label>
+                <input type="number" class="form-control form-control-sm" @bind="_draftBonusAttack" />
+            </div>
+            <div class="col-4">
+                <label class="form-label small">+ Dano</label>
+                <input type="number" class="form-control form-control-sm" @bind="_draftBonusDamage" />
+            </div>
+            <div class="col-4">
+                <label class="form-label small">+ AC</label>
+                <input type="number" class="form-control form-control-sm" @bind="_draftBonusAc" />
+            </div>
+            <div class="col-8 d-flex align-items-end">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="eq-@_uid" @bind="_draftEquipped" />
+                    <label class="form-check-label" for="eq-@_uid">Equipado</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <label class="form-label small">Notas</label>
+                <textarea class="form-control form-control-sm" rows="2" @bind="_draftNotes"></textarea>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+            <button class="btn btn-sm btn-outline-danger" @onclick="Remove">Remover</button>
+            <div>
+                <button class="btn btn-sm btn-outline-secondary me-2" @onclick="Cancel">Cancelar</button>
+                <button class="btn btn-sm btn-primary" @onclick="Save">Salvar</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public InventoryItem? Item { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnRemove { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private string? _draftCustomName;
+    private int _draftQuantity;
+    private int _draftBonusAttack;
+    private int _draftBonusDamage;
+    private int _draftBonusAc;
+    private bool _draftEquipped;
+    private string? _draftNotes;
+    private readonly string _uid = Guid.NewGuid().ToString("N");
+
+    protected override void OnParametersSet()
+    {
+        if (Item is null) return;
+        _draftCustomName  = Item.CustomName;
+        _draftQuantity    = Item.Quantity;
+        _draftBonusAttack = Item.BonusAttack;
+        _draftBonusDamage = Item.BonusDamage;
+        _draftBonusAc     = Item.BonusAc;
+        _draftEquipped    = Item.Equipped;
+        _draftNotes       = Item.Notes;
+    }
+
+    private Task Save()
+    {
+        if (Item is null) return Task.CompletedTask;
+        Item.CustomName  = string.IsNullOrWhiteSpace(_draftCustomName) ? null : _draftCustomName;
+        Item.Quantity    = Math.Max(0, _draftQuantity);
+        Item.BonusAttack = _draftBonusAttack;
+        Item.BonusDamage = _draftBonusDamage;
+        Item.BonusAc     = _draftBonusAc;
+        Item.Equipped    = _draftEquipped;
+        Item.Notes       = string.IsNullOrWhiteSpace(_draftNotes) ? null : _draftNotes;
+        return OnSave.InvokeAsync();
+    }
+
+    private Task Remove() => OnRemove.InvokeAsync();
+    private Task Cancel() => OnCancel.InvokeAsync();
+}

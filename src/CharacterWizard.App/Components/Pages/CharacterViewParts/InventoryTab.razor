@@ -1,0 +1,109 @@
+@using CharacterWizard.App.Components.Shared
+@using CharacterWizard.Core.Models
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">Inventário</h5>
+    <button class="btn btn-sm btn-primary" @onclick="OpenPicker">+ Adicionar item</button>
+</div>
+
+@if (Char.Inventory.Count == 0)
+{
+    <div class="text-muted small">Sem itens. Adicione um do compêndio.</div>
+}
+else
+{
+    <table class="table table-sm align-middle">
+        <thead><tr>
+            <th>Item</th>
+            <th class="text-end">Qtd</th>
+            <th class="text-end">+Atq</th>
+            <th class="text-end">+Dano</th>
+            <th class="text-end">+AC</th>
+            <th class="text-center">Eq.</th>
+            <th></th>
+        </tr></thead>
+        <tbody>
+        @foreach (var item in Char.Inventory.ToList())
+        {
+            var captured = item;
+            <tr style="cursor:pointer" @onclick="() => OpenEditor(captured)">
+                <td>
+                    <strong>@(captured.CustomName ?? captured.ItemRef.Name)</strong>
+                    @if (captured.CustomName is not null)
+                    {
+                        <div class="text-muted small">@captured.ItemRef.Name</div>
+                    }
+                </td>
+                <td class="text-end">@captured.Quantity</td>
+                <td class="text-end">@Fmt(captured.BonusAttack)</td>
+                <td class="text-end">@Fmt(captured.BonusDamage)</td>
+                <td class="text-end">@Fmt(captured.BonusAc)</td>
+                <td class="text-center">@(captured.Equipped ? "✓" : "")</td>
+                <td>
+                    <button class="btn btn-sm btn-link text-danger p-0"
+                            @onclick:stopPropagation
+                            @onclick="() => Remove(captured)">remover</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<ItemPickerModal Open="_pickerOpen"
+                 OnPick="OnItemPicked"
+                 OnCancel="() => _pickerOpen = false" />
+
+<ItemEditorModal Open="_editorOpen"
+                 Item="_editorTarget"
+                 OnSave="OnEditorSave"
+                 OnRemove="OnEditorRemove"
+                 OnCancel="() => _editorOpen = false" />
+
+@code {
+    [Parameter, EditorRequired] public Character Char { get; set; } = default!;
+    [Parameter] public EventCallback OnChange { get; set; }
+
+    private bool _pickerOpen;
+    private bool _editorOpen;
+    private InventoryItem? _editorTarget;
+
+    private void OpenPicker() => _pickerOpen = true;
+
+    private async Task OnItemPicked(EntityRef itemRef)
+    {
+        var item = new InventoryItem { ItemRef = itemRef };
+        Char.Inventory.Add(item);
+        _pickerOpen = false;
+        _editorTarget = item;
+        _editorOpen = true;
+        await OnChange.InvokeAsync(); // persist creation even if user cancels editor
+    }
+
+    private void OpenEditor(InventoryItem item)
+    {
+        _editorTarget = item;
+        _editorOpen = true;
+    }
+
+    private async Task OnEditorSave()
+    {
+        _editorOpen = false;
+        await OnChange.InvokeAsync();
+    }
+
+    private async Task OnEditorRemove()
+    {
+        if (_editorTarget is not null) Char.Inventory.Remove(_editorTarget);
+        _editorOpen = false;
+        await OnChange.InvokeAsync();
+    }
+
+    private async Task Remove(InventoryItem item)
+    {
+        Char.Inventory.Remove(item);
+        await OnChange.InvokeAsync();
+    }
+
+    private static string Fmt(int v) => v == 0 ? "" : (v > 0 ? "+" + v : v.ToString());
+}

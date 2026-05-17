@@ -16,9 +16,9 @@ Cada task tem arquivos e critério de done. Commit atômico por task. Marque `[x
 
 ## F3.2 — CharacterView com estrutura de tabs
 
-- [ ] **T3.2.1** Refatorar `Components/Pages/CharacterView.razor`: introduzir nav-tabs Bootstrap com 3 abas (`Ficha` / `Inventário` / `Buffs & Notas`). Variável `_activeTab`. Conteúdo da Ficha atual fica intacto na primeira aba.
-- [ ] **T3.2.2** Smoke build OK.
-- [ ] **T3.2.3** Commit: `refactor(app): CharacterView tabs structure (F3.2)`.
+- [x] **T3.2.1** Refatorar `Components/Pages/CharacterView.razor`: introduzir nav-tabs Bootstrap com 3 abas (`Ficha` / `Inventário` / `Buffs & Notas`). Variável `_activeTab`. Conteúdo da Ficha atual fica intacto na primeira aba.
+- [x] **T3.2.2** Smoke build OK.
+- [x] **T3.2.3** Commit: `refactor(app): CharacterView tabs structure (F3.2)`.
 
 ## F3.3 — Tab Inventário com CRUD + ItemPicker
 
