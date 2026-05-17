@@ -1,0 +1,71 @@
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Data.Search
+@inject SearchService Searcher
+
+@if (Open)
+{
+    <div class="cw-modal-backdrop" @onclick="Cancel"></div>
+    <div class="cw-modal" role="dialog" aria-modal="true">
+        <div class="cw-modal-header">
+            <h5 class="mb-0">Escolher feat</h5>
+            <button class="cw-modal-close" @onclick="Cancel" aria-label="Fechar">✕</button>
+        </div>
+
+        <input class="form-control mb-2" placeholder="Buscar feat..."
+               value="@_query" @oninput="OnInput" autofocus />
+
+        @if (_results is { } r && r.Items.Count > 0)
+        {
+            <div class="list-group small" style="max-height: 360px; overflow:auto;">
+                @foreach (var e in r.Items.Take(60))
+                {
+                    <button class="list-group-item list-group-item-action py-1"
+                            @onclick="() => Pick(e)">
+                        <strong>@e.Name</strong>
+                        <span class="text-muted ms-2">· @e.Source@(e.Page is int p ? $" p.{p}" : "")</span>
+                    </button>
+                }
+            </div>
+        }
+        else if (_query.Length > 0)
+        {
+            <div class="text-muted small">Nenhum feat encontrado.</div>
+        }
+        else
+        {
+            <div class="text-muted small">Digite para buscar.</div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public EventCallback<EntityRef> OnPick { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private string _query = "";
+    private SearchResultPage? _results;
+    private CancellationTokenSource? _debounce;
+
+    protected override void OnParametersSet()
+    {
+        if (Open && _results is null) _query = "";
+    }
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        _query = e.Value?.ToString() ?? "";
+        _debounce?.Cancel();
+        _debounce = new();
+        try
+        {
+            await Task.Delay(150, _debounce.Token);
+            _results = Searcher.Search(_query, new[] { "Feat" }, null, pageSize: 100);
+            StateHasChanged();
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private Task Pick(SearchEntry e) => OnPick.InvokeAsync(new EntityRef(e.Name, e.Source));
+    private Task Cancel() => OnCancel.InvokeAsync();
+}

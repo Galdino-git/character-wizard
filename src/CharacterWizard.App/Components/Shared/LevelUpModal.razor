@@ -84,13 +84,25 @@
             }
             else
             {
-                <div class="small text-muted mt-1">
-                    (Pickeer de feat: use a aba <em>Inventário</em>… err, próxima versão.
-                    Por enquanto digite name/source manual.)
+                <div class="d-flex gap-2 align-items-end mt-1">
+                    <div class="flex-grow-1">
+                        <label class="form-label small mb-0">Feat selecionada</label>
+                        <input class="form-control form-control-sm" placeholder="(nenhuma)"
+                               value="@DisplayFeat()" readonly />
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" @onclick="() => _featPickerOpen = true">
+                        🔍 Escolher feat
+                    </button>
                 </div>
-                <div class="row g-2">
-                    <div class="col-6"><input class="form-control form-control-sm" placeholder="Feat name" @bind="_featName" /></div>
-                    <div class="col-3"><input class="form-control form-control-sm" placeholder="Source" @bind="_featSource" /></div>
+                <div class="row g-2 mt-1">
+                    <div class="col-6">
+                        <label class="form-label small mb-0">ou name manual</label>
+                        <input class="form-control form-control-sm" placeholder="Feat name" @bind="_featName" />
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label small mb-0">source</label>
+                        <input class="form-control form-control-sm" placeholder="PHB" @bind="_featSource" />
+                    </div>
                 </div>
             }
         }
@@ -100,6 +112,10 @@
             <button class="btn btn-sm btn-primary" @onclick="Apply">Aplicar</button>
         </div>
     </div>
+
+    <FeatPickerModal Open="_featPickerOpen"
+                     OnPick="OnFeatPicked"
+                     OnCancel="() => _featPickerOpen = false" />
 }
 
 @code {
@@ -117,7 +133,18 @@
     private Dictionary<Ability, int> _asiAlloc = new();
     private string _featName = "";
     private string _featSource = "";
+    private bool _featPickerOpen;
     private readonly string _uid = Guid.NewGuid().ToString("N");
+
+    private string DisplayFeat() =>
+        string.IsNullOrEmpty(_featName) ? "" : $"{_featName} ({_featSource})";
+
+    private void OnFeatPicked(EntityRef r)
+    {
+        _featName = r.Name;
+        _featSource = r.Source;
+        _featPickerOpen = false;
+    }
 
     protected override void OnParametersSet()
     {
