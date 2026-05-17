@@ -1,4 +1,5 @@
 @page "/character/{Id:guid}"
+@using System.Text.Json
 @using CharacterWizard.App.Components.Pages.CharacterViewParts
 @using CharacterWizard.App.Components.Shared
 @using CharacterWizard.Core.Models
@@ -6,6 +7,7 @@
 @using CharacterWizard.Core.Rules
 @inject CharacterStore Store
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 @if (_character is null)
 {
@@ -28,6 +30,7 @@ else
             {
                 <button class="btn btn-sm btn-primary me-2" @onclick="OpenLevelUp">+ Subir nível</button>
             }
+            <button class="btn btn-sm btn-outline-secondary me-2" @onclick="Export">Exportar JSON</button>
             <button class="btn btn-sm btn-outline-danger" @onclick="Delete">Excluir</button>
             <a class="btn btn-sm btn-outline-secondary" href="">Voltar</a>
         </div>
@@ -100,5 +103,18 @@ else
         _levelUpOpen = false;
         await Task.Yield();
         HandleChange();
+    }
+
+    private async Task Export()
+    {
+        if (_character is null) return;
+        var json = JsonSerializer.Serialize(_character, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+        });
+        var safeName = string.Join("_",
+            (_character.Name ?? "character").Split(Path.GetInvalidFileNameChars()));
+        await JS.InvokeVoidAsync("cwIo.download", $"{safeName}.json", json);
     }
 }

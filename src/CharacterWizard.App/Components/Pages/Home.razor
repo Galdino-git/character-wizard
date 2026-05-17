@@ -1,4 +1,6 @@
 @page "/"
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components.Forms
 @using CharacterWizard.Core.Models
 @using CharacterWizard.Core.Persistence
 @using CharacterWizard.Core.Rules
@@ -40,8 +42,16 @@ else
     </div>
 }
 
-<div class="mt-4">
+<div class="mt-4 d-flex gap-2 align-items-center">
     <a class="btn btn-primary" href="new">+ Novo personagem</a>
+    <label class="btn btn-outline-secondary mb-0">
+        Importar JSON
+        <InputFile OnChange="OnImport" accept=".json" class="d-none" />
+    </label>
+    @if (_importStatus is not null)
+    {
+        <span class="small @(_importError ? "text-danger" : "text-success")">@_importStatus</span>
+    }
 </div>
 
 @code {
@@ -51,4 +61,34 @@ else
         _characters = Store.LoadAll().OrderByDescending(c => c.UpdatedUtc).ToList();
 
     private void Open(Guid id) => Nav.NavigateTo($"character/{id}");
+
+    private string? _importStatus;
+    private bool _importError;
+
+    private async Task OnImport(InputFileChangeEventArgs e)
+    {
+        _importStatus = null;
+        _importError = false;
+        try
+        {
+            using var stream = e.File.OpenReadStream(maxAllowedSize: 4 * 1024 * 1024);
+            var c = await JsonSerializer.DeserializeAsync<Character>(stream, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+            });
+            if (c is null) throw new InvalidDataException("Arquivo vazio ou inválido.");
+
+            // Give it a fresh Id to avoid colliding with existing files.
+            var imported = c with { Id = Guid.NewGuid(), CreatedUtc = DateTime.UtcNow };
+            Store.Save(imported);
+
+            _characters = Store.LoadAll().OrderByDescending(x => x.UpdatedUtc).ToList();
+            _importStatus = $"Importado: {imported.Name}";
+        }
+        catch (Exception ex)
+        {
+            _importError = true;
+            _importStatus = "Falha ao importar: " + ex.Message;
+        }
+    }
 }
