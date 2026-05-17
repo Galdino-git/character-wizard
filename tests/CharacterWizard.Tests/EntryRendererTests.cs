@@ -190,3 +190,97 @@ public class EntryRenderer_FormattingTagsTests
         Assert.Contains(">8d6<", html);
     }
 }
+
+public class EntryRenderer_StructuredEntriesTests
+{
+    private static System.Text.Json.JsonElement Parse(string json) =>
+        System.Text.Json.JsonDocument.Parse(json).RootElement;
+
+    [Fact]
+    public void Render_returns_empty_for_null_element()
+    {
+        Assert.Equal("", EntryRenderer.Render(default));
+    }
+
+    [Fact]
+    public void Render_processes_string_entry()
+    {
+        var html = EntryRenderer.Render(Parse("\"hello {@b world}\""));
+        Assert.Contains("hello <strong>world</strong>", html);
+    }
+
+    [Fact]
+    public void Render_processes_array_of_strings()
+    {
+        var html = EntryRenderer.Render(Parse("[\"first\",\"second\"]"));
+        Assert.Contains("first", html);
+        Assert.Contains("second", html);
+    }
+
+    [Fact]
+    public void Render_processes_entries_object_with_name_header()
+    {
+        var json = "{\"type\":\"entries\",\"name\":\"Rage\",\"entries\":[\"In battle, you fight with primal ferocity.\"]}";
+        var html = EntryRenderer.Render(Parse(json));
+        Assert.Contains("Rage", html);
+        Assert.Contains("In battle", html);
+        // name should be marked as a header element (h, strong, or class header)
+        Assert.Matches(@"<(h\d|strong|span class=""cw-entry-name"")[^>]*>Rage", html);
+    }
+
+    [Fact]
+    public void Render_processes_list_with_items()
+    {
+        var json = "{\"type\":\"list\",\"items\":[\"a\",\"b\",\"c\"]}";
+        var html = EntryRenderer.Render(Parse(json));
+        Assert.Contains("<ul", html);
+        Assert.Contains("<li>a</li>", html);
+        Assert.Contains("<li>b</li>", html);
+        Assert.Contains("<li>c</li>", html);
+    }
+
+    [Fact]
+    public void Render_processes_nested_entries()
+    {
+        var json = """
+        {"type":"entries","name":"Outer","entries":[
+          {"type":"entries","name":"Inner","entries":["{@b deep}"]}
+        ]}
+        """;
+        var html = EntryRenderer.Render(Parse(json));
+        Assert.Contains("Outer", html);
+        Assert.Contains("Inner", html);
+        Assert.Contains("<strong>deep</strong>", html);
+    }
+
+    [Fact]
+    public void Render_processes_inset_with_wrapper()
+    {
+        var json = "{\"type\":\"inset\",\"name\":\"Note\",\"entries\":[\"side text\"]}";
+        var html = EntryRenderer.Render(Parse(json));
+        Assert.Contains("class=\"cw-inset\"", html);
+        Assert.Contains("side text", html);
+    }
+
+    [Fact]
+    public void Render_processes_table_basic()
+    {
+        var json = """
+        {"type":"table","caption":"Levels","colLabels":["Level","XP"],"rows":[["1","0"],["2","300"]]}
+        """;
+        var html = EntryRenderer.Render(Parse(json));
+        Assert.Contains("<table", html);
+        Assert.Contains("Levels", html);
+        Assert.Contains("<th>Level</th>", html);
+        Assert.Contains("<td>0</td>", html);
+        Assert.Contains("<td>300</td>", html);
+    }
+
+    [Fact]
+    public void Render_unknown_type_returns_empty_or_safe_fallback()
+    {
+        var html = EntryRenderer.Render(Parse("{\"type\":\"alienType\",\"entries\":[\"x\"]}"));
+        // Should not throw and should not emit raw "alienType" text into the page
+        Assert.DoesNotContain("alienType", html);
+    }
+}

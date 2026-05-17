@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace CharacterWizard.Data.EntryRendering;
@@ -134,5 +135,145 @@ public static partial class EntryRenderer
     {
         var pipe = args.IndexOf('|');
         return pipe < 0 ? args : args[..pipe];
+    }
+
+    // ───── structured entries ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Renders a 5etools "entries" node — which can be a string, an array, or a
+    /// typed object (entries/list/inset/table/quote) — into HTML. Unknown types
+    /// are dropped silently rather than raising, so a single malformed entry in
+    /// a class file does not break the whole renderer.
+    /// </summary>
+    public static string Render(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.Undefined => "",
+            JsonValueKind.Null      => "",
+            JsonValueKind.String    => RenderString(element.GetString()),
+            JsonValueKind.Number    => WebUtility.HtmlEncode(element.GetRawText()),
+            JsonValueKind.Array     => RenderArray(element),
+            JsonValueKind.Object    => RenderObject(element),
+            _                       => "",
+        };
+    }
+
+    private static string RenderArray(JsonElement arr)
+    {
+        var sb = new StringBuilder();
+        foreach (var item in arr.EnumerateArray())
+        {
+            var part = Render(item);
+            if (string.IsNullOrEmpty(part)) continue;
+            // Strings wrapped in <p> so consecutive entries don't run together;
+            // structured items return their own block-level wrapper already.
+            sb.Append(item.ValueKind == JsonValueKind.String
+                ? $"<p>{part}</p>"
+                : part);
+        }
+        return sb.ToString();
+    }
+
+    private static string RenderObject(JsonElement obj)
+    {
+        if (!obj.TryGetProperty("type", out var typeEl) || typeEl.ValueKind != JsonValueKind.String)
+            return ""; // not an entries-typed object, ignore
+
+        var type = typeEl.GetString()!.ToLowerInvariant();
+        return type switch
+        {
+            "entries" or "section" => RenderEntriesBlock(obj),
+            "list"                  => RenderList(obj),
+            "inset" or "insetReadaloud" => RenderInset(obj),
+            "table"                 => RenderTable(obj),
+            "quote"                 => RenderQuote(obj),
+            _                       => "",
+        };
+    }
+
+    private static string RenderEntriesBlock(JsonElement obj)
+    {
+        var sb = new StringBuilder("<div class=\"cw-entries\">");
+        if (obj.TryGetProperty("name", out var nameEl) && nameEl.ValueKind == JsonValueKind.String)
+            sb.Append($"<span class=\"cw-entry-name\">{RenderString(nameEl.GetString())}</span> ");
+        if (obj.TryGetProperty("entries", out var entriesEl))
+            sb.Append(Render(entriesEl));
+        sb.Append("</div>");
+        return sb.ToString();
+    }
+
+    private static string RenderList(JsonElement obj)
+    {
+        var sb = new StringBuilder("<ul class=\"cw-list\">");
+        if (obj.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in items.EnumerateArray())
+            {
+                var inner = item.ValueKind == JsonValueKind.String
+                    ? RenderString(item.GetString())
+                    : Render(item);
+                sb.Append($"<li>{inner}</li>");
+            }
+        }
+        sb.Append("</ul>");
+        return sb.ToString();
+    }
+
+    private static string RenderInset(JsonElement obj)
+    {
+        var sb = new StringBuilder("<aside class=\"cw-inset\">");
+        if (obj.TryGetProperty("name", out var nameEl) && nameEl.ValueKind == JsonValueKind.String)
+            sb.Append($"<header class=\"cw-inset-name\">{RenderString(nameEl.GetString())}</header>");
+        if (obj.TryGetProperty("entries", out var entriesEl))
+            sb.Append(Render(entriesEl));
+        sb.Append("</aside>");
+        return sb.ToString();
+    }
+
+    private static string RenderQuote(JsonElement obj)
+    {
+        var sb = new StringBuilder("<blockquote class=\"cw-quote\">");
+        if (obj.TryGetProperty("entries", out var entriesEl))
+            sb.Append(Render(entriesEl));
+        if (obj.TryGetProperty("by", out var byEl) && byEl.ValueKind == JsonValueKind.String)
+            sb.Append($"<footer>— {RenderString(byEl.GetString())}</footer>");
+        sb.Append("</blockquote>");
+        return sb.ToString();
+    }
+
+    private static string RenderTable(JsonElement obj)
+    {
+        var sb = new StringBuilder("<table class=\"cw-table\">");
+
+        if (obj.TryGetProperty("caption", out var capEl) && capEl.ValueKind == JsonValueKind.String)
+            sb.Append($"<caption>{RenderString(capEl.GetString())}</caption>");
+
+        if (obj.TryGetProperty("colLabels", out var cols) && cols.ValueKind == JsonValueKind.Array)
+        {
+            sb.Append("<thead><tr>");
+            foreach (var c in cols.EnumerateArray())
+                sb.Append($"<th>{(c.ValueKind == JsonValueKind.String ? RenderString(c.GetString()) : Render(c))}</th>");
+            sb.Append("</tr></thead>");
+        }
+
+        if (obj.TryGetProperty("rows", out var rows) && rows.ValueKind == JsonValueKind.Array)
+        {
+            sb.Append("<tbody>");
+            foreach (var row in rows.EnumerateArray())
+            {
+                sb.Append("<tr>");
+                if (row.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var cell in row.EnumerateArray())
+                        sb.Append($"<td>{(cell.ValueKind == JsonValueKind.String ? RenderString(cell.GetString()) : Render(cell))}</td>");
+                }
+                sb.Append("</tr>");
+            }
+            sb.Append("</tbody>");
+        }
+
+        sb.Append("</table>");
+        return sb.ToString();
     }
 }

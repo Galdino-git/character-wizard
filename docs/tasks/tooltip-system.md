@@ -29,13 +29,13 @@ Cada task tem: arquivos afetados · testes · critério de done. **TDD: red → 
 
 ## F2.3 — EntryRenderer: formato (damage/dice/hit/atk/dc)
 
-- [ ] **T2.3.1** Testes vermelhos:
+- [x] **T2.3.1** Testes vermelhos:
     - `RenderString_renders_damage_with_dice_formula`
     - `RenderString_renders_dice_tag_with_average_tooltip`
     - `RenderString_renders_hit_tag_as_signed_modifier`
     - `RenderString_renders_dc_tag_as_DC_N`
-- [ ] **T2.3.2** Adicionar handlers para `@damage @dice @scaledamage @scaledice @hit @atk @dc @h @note`. Emitir spans com tooltip texto (sem ser entidade clicável).
-- [ ] **T2.3.3** Commit: `feat(data): EntryRenderer supports formatting tags`.
+- [x] **T2.3.2** Adicionar handlers para `@damage @dice @scaledamage @scaledice @hit @atk @dc @h @note`. Emitir spans com tooltip texto (sem ser entidade clicável).
+- [x] **T2.3.3** Commit: `feat(data): EntryRenderer supports formatting tags`.
 
 ## F2.4 — EntryRenderer: estruturas (entries/list/inset/table)
 
