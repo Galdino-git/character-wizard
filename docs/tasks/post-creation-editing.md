@@ -6,13 +6,13 @@ Cada task tem arquivos e critério de done. Commit atômico por task. Marque `[x
 
 ## F3.1 — Testes de round-trip expandidos (TDD)
 
-- [ ] **T3.1.1** Em `tests/CharacterWizard.Tests/CoreTests.cs`, adicionar testes:
+- [x] **T3.1.1** Em `tests/CharacterWizard.Tests/CoreTests.cs`, adicionar testes:
     - `CharacterStore_preserves_multiple_inventory_items_with_bonuses`
     - `CharacterStore_preserves_ability_overrides_list`
     - `CharacterStore_save_creates_history_entry_on_overwrite`
     - `CharacterStore_history_keeps_at_most_five_versions`
-- [ ] **T3.1.2** Verify: testes verdes (o model já suporta; valida que nada quebra).
-- [ ] **T3.1.3** Commit: `test(core): expand CharacterStore round-trip coverage (F3.1)`.
+- [x] **T3.1.2** Verify: testes verdes (o model já suporta; valida que nada quebra).
+- [x] **T3.1.3** Commit: `test(core): expand CharacterStore round-trip coverage (F3.1)`.
 
 ## F3.2 — CharacterView com estrutura de tabs
 

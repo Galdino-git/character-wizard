@@ -1,0 +1,67 @@
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Core.Rules
+
+@{
+    var final = AbilityScoreCalculator.ComputeFinal(Char);
+    var pb = ProficiencyBonus.ForLevel(Char.TotalLevel);
+}
+
+<h5>Atributos</h5>
+<table class="table table-sm w-auto">
+    <thead><tr>
+        @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
+        { <th>@a.ToString().ToUpperInvariant()</th> }
+        <th>Prof.</th>
+    </tr></thead>
+    <tbody><tr>
+        @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
+        {
+            var score = final.Get(a);
+            var mod = AbilityScoreCalculator.Modifier(score);
+            <td>@score <small class="text-muted">(@(mod >= 0 ? "+" : "")@mod)</small></td>
+        }
+        <td>+@pb</td>
+    </tr></tbody>
+</table>
+
+@if (Char.AbilityOverrides.Count > 0)
+{
+    <h6 class="mt-3">Overrides aplicados</h6>
+    <ul class="small">
+        @foreach (var o in Char.AbilityOverrides)
+        {
+            <li>
+                @o.Ability.ToString().ToUpperInvariant(): @(o.Delta >= 0 ? "+" : "")@o.Delta
+                @if (!string.IsNullOrEmpty(o.Reason)) { <span class="text-muted">— @o.Reason</span> }
+            </li>
+        }
+    </ul>
+}
+
+@if (Char.Inventory.Count > 0)
+{
+    <h5 class="mt-4">Inventário</h5>
+    <ul>
+        @foreach (var i in Char.Inventory)
+        {
+            <li>
+                @(i.CustomName ?? i.ItemRef.Name)
+                @if (i.Quantity != 1) { <span> ×@i.Quantity</span> }
+                @if (i.BonusAttack != 0 || i.BonusDamage != 0)
+                {
+                    <small class="text-muted"> (+@i.BonusAttack atq / +@i.BonusDamage dano)</small>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@if (!string.IsNullOrWhiteSpace(Char.Notes))
+{
+    <h6 class="mt-4">Notas</h6>
+    <div class="small" style="white-space: pre-wrap;">@Char.Notes</div>
+}
+
+@code {
+    [Parameter, EditorRequired] public Character Char { get; set; } = default!;
+}
