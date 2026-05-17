@@ -6,15 +6,15 @@ Cada task tem: arquivos afetados · testes · critério de done. **TDD: red → 
 
 ## F2.1 — EntryRenderer foundation (inline tags simples)
 
-- [ ] **T2.1.1** Criar `tests/CharacterWizard.Tests/EntryRendererTests.cs` com testes vermelhos:
+- [x] **T2.1.1** Criar `tests/CharacterWizard.Tests/EntryRendererTests.cs` com testes vermelhos:
     - `RenderString_returns_empty_for_null_or_empty`
     - `RenderString_escapes_html_special_chars`
     - `RenderString_wraps_b_tag_as_strong`
     - `RenderString_wraps_i_tag_as_em`
     - `RenderString_wraps_u_tag_as_u`
     - Verify: `dotnet test` — testes falham com "EntryRenderer not found".
-- [ ] **T2.1.2** Criar `src/CharacterWizard.Data/EntryRendering/EntryRenderer.cs` com método `RenderString(string text)` que processa `@b @i @u` e escapa HTML. Verify: testes verdes.
-- [ ] **T2.1.3** Commit: `feat(data): EntryRenderer base with @b @i @u tags`.
+- [x] **T2.1.2** Criar `src/CharacterWizard.Data/EntryRendering/EntryRenderer.cs` com método `RenderString(string text)` que processa `@b @i @u` e escapa HTML. Verify: testes verdes.
+- [x] **T2.1.3** Commit: `feat(data): EntryRenderer base with @b @i @u tags`.
 
 ## F2.2 — EntryRenderer: tags de entidade clicáveis
 

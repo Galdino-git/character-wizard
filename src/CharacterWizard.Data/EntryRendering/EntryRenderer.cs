@@ -43,17 +43,57 @@ public static partial class EntryRenderer
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Tags that resolve to an entity in the catalog. The string value is the
+    /// "category" used by EntityResolver/data-cw-cat to route the click.
+    /// Source defaults to "PHB" (5etools default for player content) when the
+    /// data omits an explicit source.
+    /// </summary>
+    private static readonly Dictionary<string, string> EntityTagCategories = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["spell"]            = "spell",
+        ["item"]             = "item",
+        ["condition"]        = "condition",
+        ["feat"]             = "feat",
+        ["skill"]            = "skill",
+        ["action"]           = "action",
+        ["sense"]            = "sense",
+        ["creature"]         = "creature",
+        ["feature"]          = "feature",
+        ["classfeature"]     = "classfeature",
+        ["subclassfeature"]  = "subclassfeature",
+        ["optfeature"]       = "optfeature",
+    };
+
+    private const string DefaultEntitySource = "PHB";
+
     private static string RenderTag(string tag, string args)
     {
-        // The default behavior for unknown tags is to emit the first pipe segment
-        // (the display text) so we never silently drop content.
-        return tag.ToLowerInvariant() switch
+        var lower = tag.ToLowerInvariant();
+
+        if (EntityTagCategories.TryGetValue(lower, out var category))
+            return RenderEntityRef(category, args);
+
+        return lower switch
         {
             "b" or "bold"      => $"<strong>{WebUtility.HtmlEncode(args)}</strong>",
             "i" or "italic"    => $"<em>{WebUtility.HtmlEncode(args)}</em>",
             "u" or "underline" => $"<u>{WebUtility.HtmlEncode(args)}</u>",
             _ => WebUtility.HtmlEncode(FirstSegment(args)),
         };
+    }
+
+    private static string RenderEntityRef(string category, string args)
+    {
+        var parts = args.Split('|');
+        var name    = parts.Length > 0 ? parts[0] : "";
+        var source  = parts.Length > 1 && !string.IsNullOrEmpty(parts[1]) ? parts[1] : DefaultEntitySource;
+        var display = parts.Length > 2 && !string.IsNullOrEmpty(parts[2]) ? parts[2] : name;
+
+        return $"<span class=\"cw-ref\" data-cw-cat=\"{WebUtility.HtmlEncode(category)}\" " +
+               $"data-cw-name=\"{WebUtility.HtmlEncode(name)}\" " +
+               $"data-cw-source=\"{WebUtility.HtmlEncode(source)}\">" +
+               $"{WebUtility.HtmlEncode(display)}</span>";
     }
 
     private static string FirstSegment(string args)

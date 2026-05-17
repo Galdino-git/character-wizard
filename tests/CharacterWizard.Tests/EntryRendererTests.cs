@@ -63,3 +63,60 @@ public class EntryRendererTests
             EntryRenderer.RenderString("{@b <evil>}"));
     }
 }
+
+public class EntryRenderer_EntityRefTagsTests
+{
+    [Theory]
+    [InlineData("@spell",   "spell",   "Fireball")]
+    [InlineData("@item",    "item",    "Longsword")]
+    [InlineData("@condition", "condition", "prone")]
+    [InlineData("@feat",    "feat",    "Tough")]
+    [InlineData("@skill",   "skill",   "Perception")]
+    [InlineData("@action",  "action",  "Dash")]
+    [InlineData("@sense",   "sense",   "Darkvision")]
+    [InlineData("@creature","creature","Goblin")]
+    [InlineData("@feature", "feature", "Rage")]
+    [InlineData("@classFeature",    "classfeature",    "Action Surge")]
+    [InlineData("@subclassFeature", "subclassfeature", "Eldritch Strike")]
+    [InlineData("@optfeature","optfeature","Agonizing Blast")]
+    public void Tag_renders_as_cw_ref_span_with_default_source(string tag, string expectedCat, string name)
+    {
+        var html = EntryRenderer.RenderString($"{{{tag} {name}}}");
+        Assert.Contains($"data-cw-cat=\"{expectedCat}\"", html);
+        Assert.Contains($"data-cw-name=\"{name}\"", html);
+        Assert.Contains("class=\"cw-ref\"", html);
+        Assert.Contains($">{System.Net.WebUtility.HtmlEncode(name)}<", html);
+    }
+
+    [Fact]
+    public void Tag_with_explicit_source_emits_source_attribute()
+    {
+        var html = EntryRenderer.RenderString("{@spell Fireball|XPHB}");
+        Assert.Contains("data-cw-source=\"XPHB\"", html);
+        Assert.Contains(">Fireball<", html);
+    }
+
+    [Fact]
+    public void Tag_with_display_alias_uses_alias_as_text()
+    {
+        var html = EntryRenderer.RenderString("{@spell Fireball|PHB|fb}");
+        Assert.Contains("data-cw-name=\"Fireball\"", html);
+        Assert.Contains("data-cw-source=\"PHB\"", html);
+        Assert.Contains(">fb<", html);
+    }
+
+    [Fact]
+    public void Unknown_tag_renders_display_text_fallback()
+    {
+        Assert.Equal("Foo", EntryRenderer.RenderString("{@xyz Foo|PHB|Foo}"));
+        Assert.Equal("Foo", EntryRenderer.RenderString("{@nonsense Foo}"));
+    }
+
+    [Fact]
+    public void Entity_tag_escapes_quotes_in_attributes()
+    {
+        var html = EntryRenderer.RenderString("{@spell Bad\"Name}");
+        Assert.DoesNotContain("Bad\"Name\"", html); // never a raw injection
+        Assert.Contains("data-cw-name=\"Bad&quot;Name\"", html);
+    }
+}
