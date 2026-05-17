@@ -3,6 +3,7 @@ using CharacterWizard.Core.Persistence;
 using CharacterWizard.Core.Settings;
 using CharacterWizard.Data.Repositories;
 using CharacterWizard.Data.Resolving;
+using CharacterWizard.Data.Search;
 using Microsoft.Extensions.Logging;
 
 namespace CharacterWizard.App;
@@ -40,6 +41,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ItemRepository>();
         builder.Services.AddSingleton<FeatRepository>();
         builder.Services.AddSingleton<EntityResolver>();
+        builder.Services.AddSingleton<SearchService>();
 
         // Character persistence
         builder.Services.AddSingleton<CharacterStore>(sp =>

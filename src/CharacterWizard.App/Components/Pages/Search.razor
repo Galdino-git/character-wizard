@@ -1,0 +1,111 @@
+@page "/search"
+@using CharacterWizard.App.Components.Shared
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Data.Search
+@inject SearchService Searcher
+
+<h1>Compêndio</h1>
+<p class="text-muted">Busque qualquer entidade dos livros habilitados.</p>
+
+<div class="row g-3 mb-3 align-items-end">
+    <div class="col-md-6">
+        <label class="form-label small text-uppercase text-muted">Buscar</label>
+        <input class="form-control" placeholder="Ex.: fireball, longsword, rage..."
+               value="@_query" @oninput="OnQueryInput" />
+    </div>
+    <div class="col-md-6 d-flex flex-wrap gap-1">
+        @foreach (var c in Categories)
+        {
+            var active = _selectedCategories.Contains(c);
+            <button type="button"
+                    class="btn btn-sm @(active ? "btn-primary" : "btn-outline-secondary")"
+                    @onclick="() => ToggleCategory(c)">@c</button>
+        }
+        @if (_selectedCategories.Count > 0)
+        {
+            <button type="button" class="btn btn-sm btn-link" @onclick="ClearCategories">limpar</button>
+        }
+    </div>
+</div>
+
+@if (_results is null || _results.TotalCount == 0)
+{
+    <div class="text-muted">@(_results is null ? "Digite algo ou escolha uma categoria." : "Nenhum resultado.")</div>
+}
+else
+{
+    <div class="text-muted small mb-2">@_results.TotalCount resultado(s).</div>
+    <div class="list-group">
+        @foreach (var item in _results.Items.Take(100))
+        {
+            <button class="list-group-item list-group-item-action d-flex justify-content-between"
+                    @onclick="() => OpenDetail(item)">
+                <span>
+                    <span class="badge bg-secondary me-2">@item.Category</span>
+                    <strong>@item.Name</strong>
+                </span>
+                <span class="text-muted small">@item.Source@(item.Page is int p ? $" · p. {p}" : "")</span>
+            </button>
+        }
+    </div>
+}
+
+<EntityDetailPanel Open="_detailOpen"
+                   Category="@_detailCategory"
+                   Ref="_detailRef"
+                   OnClose="CloseDetail" />
+
+@code {
+    private static readonly string[] Categories =
+        ["Race", "Class", "Background", "Spell", "Item", "Feat"];
+
+    private string _query = "";
+    private readonly HashSet<string> _selectedCategories = new(StringComparer.OrdinalIgnoreCase);
+    private SearchResultPage? _results;
+
+    private bool _detailOpen;
+    private string? _detailCategory;
+    private EntityRef? _detailRef;
+
+    private CancellationTokenSource? _debounceCts;
+
+    private async Task OnQueryInput(ChangeEventArgs e)
+    {
+        _query = e.Value?.ToString() ?? "";
+        _debounceCts?.Cancel();
+        _debounceCts = new();
+        var ct = _debounceCts.Token;
+        try
+        {
+            await Task.Delay(200, ct);
+            DoSearch();
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private void ToggleCategory(string c)
+    {
+        if (!_selectedCategories.Add(c)) _selectedCategories.Remove(c);
+        DoSearch();
+    }
+
+    private void ClearCategories()
+    {
+        _selectedCategories.Clear();
+        DoSearch();
+    }
+
+    private void DoSearch()
+    {
+        _results = Searcher.Search(_query, _selectedCategories.ToArray(), null, pageSize: 200);
+        StateHasChanged();
+    }
+
+    private void OpenDetail(SearchEntry e)
+    {
+        _detailCategory = e.Category.ToLowerInvariant();
+        _detailRef = new EntityRef(e.Name, e.Source);
+        _detailOpen = true;
+    }
+    private void CloseDetail() => _detailOpen = false;
+}

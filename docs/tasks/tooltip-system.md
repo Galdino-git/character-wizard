@@ -75,6 +75,6 @@ Cada task tem: arquivos afetados · testes · critério de done. **TDD: red → 
 
 ## F2.8 — Wire-up no wizard e CharacterView
 
-- [ ] **T2.8.1** Em `RaceSelectStep`, `ClassSelectStep`, `BackgroundSelectStep`: adicionar botão "ⓘ Ver detalhe" no card que abre `EntityDetailPanel`.
-- [ ] **T2.8.2** Em `CharacterView`: renderizar descrição da classe/raça/background via `EntryDisplay`.
-- [ ] **T2.8.3** Commit: `feat(app): integrate EntityDetailPanel into wizard and character view`.
+- [x] **T2.8.1** Em `RaceSelectStep`, `ClassSelectStep`, `BackgroundSelectStep`: adicionar botão "ⓘ Ver detalhe" no card que abre `EntityDetailPanel`.
+- [x] **T2.8.2** Em `CharacterView`: renderizar descrição da classe/raça/background via `EntryDisplay`.
+- [x] **T2.8.3** Commit: `feat(app): integrate EntityDetailPanel into wizard and character view`.
