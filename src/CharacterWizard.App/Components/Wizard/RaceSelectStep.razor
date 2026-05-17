@@ -1,3 +1,4 @@
+@using CharacterWizard.App.Components.Shared
 @using CharacterWizard.App.Services
 @using CharacterWizard.Core.Models
 @using CharacterWizard.Data.Models
@@ -36,14 +37,29 @@
                 <div class="card-body p-2">
                     <div class="fw-semibold">@r.Name</div>
                     <div class="small text-muted">@r.Source</div>
+                    <button class="btn btn-link btn-sm p-0"
+                            @onclick:stopPropagation
+                            @onclick="() => OpenDetail(r)">ⓘ detalhes</button>
                 </div>
             </div>
         </div>
     }
 </div>
 
+<EntityDetailPanel Open="_detailOpen" Category="Race" Ref="_detailRef" OnClose="CloseDetail" />
+
 @code {
     private string _filter = "";
+
+    private bool _detailOpen;
+    private EntityRef? _detailRef;
+
+    private void OpenDetail(RaceData r)
+    {
+        _detailRef = new EntityRef(r.Name, r.Source);
+        _detailOpen = true;
+    }
+    private void CloseDetail() => _detailOpen = false;
 
     private IEnumerable<RaceData> Filtered() =>
         RaceRepo.All()

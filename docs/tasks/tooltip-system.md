@@ -68,10 +68,10 @@ Cada task tem: arquivos afetados · testes · critério de done. **TDD: red → 
 
 ## F2.7 — EntityDetailPanel modal
 
-- [ ] **T2.7.1** Criar `src/CharacterWizard.App/Components/Shared/EntityDetailPanel.razor` que mostra: nome, source, page, imagem (se aplicável), `<EntryDisplay>` da descrição. Receber `EntityRef Ref` + `EventCallback OnClose`.
-- [ ] **T2.7.2** Modal Bootstrap-like via CSS-class toggle (sem JS bootstrap). Backdrop com click fechando.
-- [ ] **T2.7.3** Integrar em `CharacterView.razor` e nos passos do wizard (Race/Class/Background): hover/click nos cards já existentes abre o panel.
-- [ ] **T2.7.4** Commit: `feat(app): EntityDetailPanel and click integration`.
+- [x] **T2.7.1** Criar `src/CharacterWizard.App/Components/Shared/EntityDetailPanel.razor` que mostra: nome, source, page, imagem (se aplicável), `<EntryDisplay>` da descrição. Receber `EntityRef Ref` + `EventCallback OnClose`.
+- [x] **T2.7.2** Modal Bootstrap-like via CSS-class toggle (sem JS bootstrap). Backdrop com click fechando.
+- [x] **T2.7.3** Integrar em `CharacterView.razor` e nos passos do wizard (Race/Class/Background): hover/click nos cards já existentes abre o panel.
+- [x] **T2.7.4** Commit: `feat(app): EntityDetailPanel and click integration`.
 
 ## F2.8 — Wire-up no wizard e CharacterView
 

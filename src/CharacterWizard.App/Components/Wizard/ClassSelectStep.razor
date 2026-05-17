@@ -1,3 +1,4 @@
+@using CharacterWizard.App.Components.Shared
 @using CharacterWizard.App.Services
 @using CharacterWizard.Core.Models
 @using CharacterWizard.Data.Models
@@ -37,13 +38,28 @@
                             <span> · @c.SpellcastingAbility.ToUpperInvariant()</span>
                         }
                     </div>
+                    <button class="btn btn-link btn-sm p-0"
+                            @onclick:stopPropagation
+                            @onclick="() => OpenDetail(c)">ⓘ detalhes</button>
                 </div>
             </div>
         </div>
     }
 </div>
 
+<EntityDetailPanel Open="_detailOpen" Category="Class" Ref="_detailRef" OnClose="CloseDetail" />
+
 @code {
+    private bool _detailOpen;
+    private EntityRef? _detailRef;
+
     private void Pick(ClassData c) =>
         Draft.ClassRef = new EntityRef(c.Name, c.Source);
+
+    private void OpenDetail(ClassData c)
+    {
+        _detailRef = new EntityRef(c.Name, c.Source);
+        _detailOpen = true;
+    }
+    private void CloseDetail() => _detailOpen = false;
 }
