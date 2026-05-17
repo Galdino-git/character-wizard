@@ -23,10 +23,10 @@
 <div class="row g-3">
     <div class="col-md-6">
         <h6>Sugestão da classe</h6>
-        @if (cls?.StartingEquipment is { } se)
+        @if (cls?.StartingEquipment is { } classSe)
         {
             <div class="border rounded p-2 small bg-light">
-                @((MarkupString)EntryRenderer.Render(se))
+                @((MarkupString)EntryRenderer.Render(classSe))
             </div>
         }
         else
@@ -36,10 +36,10 @@
     </div>
     <div class="col-md-6">
         <h6>Sugestão do background</h6>
-        @if (bg?.StartingEquipment is { } se)
+        @if (bg?.StartingEquipment is { } bgSe)
         {
             <div class="border rounded p-2 small bg-light">
-                @((MarkupString)EntryRenderer.Render(se))
+                @((MarkupString)EntryRenderer.Render(bgSe))
             </div>
         }
         else
