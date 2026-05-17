@@ -18,14 +18,14 @@ Cada task tem: arquivos afetados · testes · critério de done. **TDD: red → 
 
 ## F2.2 — EntryRenderer: tags de entidade clicáveis
 
-- [ ] **T2.2.1** Adicionar testes vermelhos:
+- [x] **T2.2.1** Adicionar testes vermelhos:
     - `RenderString_renders_spell_tag_as_cw_ref_span`
     - `RenderString_renders_item_with_explicit_source`
     - `RenderString_renders_condition_with_display_alias`
     - `RenderString_renders_pipe_segments_correctly`
     - `RenderString_renders_unknown_tag_with_display_fallback`
-- [ ] **T2.2.2** Estender `EntryRenderer` com handlers para `@spell @item @condition @feat @creature @skill @action @sense @feature @classFeature @subclassFeature @optfeature`. Emitir `<span class="cw-ref" data-cw-cat=... data-cw-name=... data-cw-source=...>display</span>`. Tag desconhecida → fallback texto.
-- [ ] **T2.2.3** Commit: `feat(data): EntryRenderer supports clickable entity ref tags`.
+- [x] **T2.2.2** Estender `EntryRenderer` com handlers para `@spell @item @condition @feat @creature @skill @action @sense @feature @classFeature @subclassFeature @optfeature`. Emitir `<span class="cw-ref" data-cw-cat=... data-cw-name=... data-cw-source=...>display</span>`. Tag desconhecida → fallback texto.
+- [x] **T2.2.3** Commit: `feat(data): EntryRenderer supports clickable entity ref tags`.
 
 ## F2.3 — EntryRenderer: formato (damage/dice/hit/atk/dc)
 

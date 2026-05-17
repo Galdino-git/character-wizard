@@ -79,9 +79,43 @@ public static partial class EntryRenderer
             "b" or "bold"      => $"<strong>{WebUtility.HtmlEncode(args)}</strong>",
             "i" or "italic"    => $"<em>{WebUtility.HtmlEncode(args)}</em>",
             "u" or "underline" => $"<u>{WebUtility.HtmlEncode(args)}</u>",
+            "h"                => $"<mark>{WebUtility.HtmlEncode(args)}</mark>",
+            "note"             => $"<em class=\"cw-note\">{WebUtility.HtmlEncode(args)}</em>",
+            "damage" or "dice" => RenderRoll(args),
+            "scaledamage" or "scaledice" => RenderRoll(FirstSegment(args)),
+            "hit"              => RenderHit(args),
+            "dc"               => $"DC {WebUtility.HtmlEncode(args)}",
+            "atk"              => RenderAtk(args),
             _ => WebUtility.HtmlEncode(FirstSegment(args)),
         };
     }
+
+    /// <summary>"+5" / "−2" — uses U+2212 (minus sign) for negatives to match the d&d style guide.</summary>
+    private static string RenderHit(string args)
+    {
+        var trimmed = args.Trim();
+        if (string.IsNullOrEmpty(trimmed)) return "";
+        if (trimmed.StartsWith('-')) return "&minus;" + WebUtility.HtmlEncode(trimmed[1..]);
+        return "+" + WebUtility.HtmlEncode(trimmed);
+    }
+
+    private static string RenderRoll(string args) =>
+        $"<span class=\"cw-roll\">{WebUtility.HtmlEncode(args)}</span>";
+
+    private static readonly Dictionary<string, string> AtkCodes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["mw"]  = "Melee Weapon Attack",
+        ["rw"]  = "Ranged Weapon Attack",
+        ["mw,rw"] = "Melee or Ranged Weapon Attack",
+        ["ms"]  = "Melee Spell Attack",
+        ["rs"]  = "Ranged Spell Attack",
+        ["ms,rs"] = "Melee or Ranged Spell Attack",
+    };
+
+    private static string RenderAtk(string args) =>
+        AtkCodes.TryGetValue(args.Trim(), out var translated)
+            ? WebUtility.HtmlEncode(translated)
+            : WebUtility.HtmlEncode(args);
 
     private static string RenderEntityRef(string category, string args)
     {

@@ -120,3 +120,73 @@ public class EntryRenderer_EntityRefTagsTests
         Assert.Contains("data-cw-name=\"Bad&quot;Name\"", html);
     }
 }
+
+public class EntryRenderer_FormattingTagsTests
+{
+    [Fact]
+    public void Damage_renders_dice_formula_with_class()
+    {
+        var html = EntryRenderer.RenderString("{@damage 8d6}");
+        Assert.Contains("class=\"cw-roll\"", html);
+        Assert.Contains(">8d6<", html);
+    }
+
+    [Fact]
+    public void Damage_with_type_keeps_type_in_text()
+    {
+        var html = EntryRenderer.RenderString("{@damage 8d6 fire}");
+        Assert.Contains(">8d6 fire<", html);
+    }
+
+    [Fact]
+    public void Dice_tag_renders_formula()
+    {
+        var html = EntryRenderer.RenderString("{@dice 1d4+1}");
+        Assert.Contains("class=\"cw-roll\"", html);
+        Assert.Contains(">1d4+1<", html);
+    }
+
+    [Fact]
+    public void Hit_tag_renders_signed_modifier()
+    {
+        Assert.Contains("+5", EntryRenderer.RenderString("{@hit 5}"));
+        Assert.Contains("&minus;2", EntryRenderer.RenderString("{@hit -2}"));
+    }
+
+    [Fact]
+    public void Dc_tag_renders_DC_prefix()
+    {
+        var html = EntryRenderer.RenderString("{@dc 15}");
+        Assert.Contains("DC 15", html);
+    }
+
+    [Fact]
+    public void Highlight_tag_renders_mark()
+    {
+        Assert.Equal("<mark>important</mark>", EntryRenderer.RenderString("{@h important}"));
+    }
+
+    [Fact]
+    public void Note_tag_renders_em()
+    {
+        var html = EntryRenderer.RenderString("{@note minor remark}");
+        Assert.Contains("<em", html);
+        Assert.Contains("minor remark", html);
+    }
+
+    [Fact]
+    public void Atk_tag_translates_known_codes()
+    {
+        // 5etools uses "mw" = melee weapon, "rw" = ranged weapon, "ms" = melee spell, "rs" = ranged spell.
+        Assert.Contains("Melee Weapon Attack", EntryRenderer.RenderString("{@atk mw}"));
+        Assert.Contains("Ranged Spell Attack", EntryRenderer.RenderString("{@atk rs}"));
+    }
+
+    [Fact]
+    public void Scaledamage_renders_base_formula()
+    {
+        // 5etools format: "{@scaledamage 8d6|3-9|1d6}" = base 8d6, scales from levels 3-9, +1d6 per level
+        var html = EntryRenderer.RenderString("{@scaledamage 8d6|3-9|1d6}");
+        Assert.Contains(">8d6<", html);
+    }
+}
