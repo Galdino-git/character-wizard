@@ -110,14 +110,21 @@ Spec: [`docs/specs/character-lifecycle-polish.md`](specs/character-lifecycle-pol
 
 ---
 
-## 🗺️ M3 — UX e polish (a especificar)
+## ✅ M3 — UX e polish (entregue 2026-05-17)
 
-- [ ] Tela de Configurações: toggles de sources (grupos do `books.json`)
-- [ ] Tema dark
-- [ ] Export/Import de personagem em JSON
-- [ ] Multiclass no wizard inicial (criação direto multiclass — hoje só via level-up)
-- [ ] Resolver `_copy` entries do 5etools (raças e subclasses que herdam de outra)
-- [ ] Telemetria local (opcional)
+Spec: [`docs/specs/m3-configurations-and-polish.md`](specs/m3-configurations-and-polish.md) · Tasks: [`docs/tasks/m3-configurations-and-polish.md`](tasks/m3-configurations-and-polish.md)
+
+- [x] **F10** Settings UI em `/settings` — toggles de groups + per-source overrides, contadores ao vivo, NavMenu link
+- [x] **F11** Dark theme — `cw-theme.css`/`.js` + toggle no `MainLayout`, persistido em `AppSettings.Theme`
+- [x] **F12** Export/Import JSON — botão "Exportar" no `CharacterView` (JS Blob download), `<InputFile>` na Home pra importar com novo `Id`
+- [x] **F13** Resolver `_copy` — `CopyResolver.Merge` (4 testes TDD) + integração no `CatalogLoader` com 2-pass (index → resolve → deserialize). Subraças derivadas (Eladrin etc.) agora aparecem
+- [x] **F14** Multiclass no wizard inicial — step "Multiclass" opcional após classe primária, lista editável de classes secundárias com nível + subclass inline, total agregado
+
+### Métrica
+**122 testes verdes** (+4 `CopyResolver`).
+
+### Descopo definitivo
+- Telemetria local — fora do escopo de ferramenta pessoal.
 
 ## 🗺️ M4 — Distribuição (a especificar)
 
