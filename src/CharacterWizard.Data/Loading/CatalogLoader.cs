@@ -48,10 +48,12 @@ public sealed class CatalogLoader
         }
 
         var mergedItems = items.Concat(itemsBase).ToList();
+        var spellListIndex = ClassSpellListIndex.LoadFrom(paths.SpellSourceLookup);
 
         return new Catalog
         {
             Paths = paths,
+            SpellListIndex = spellListIndex,
             Books = books,
             Races = races,
             Subraces = subraces,

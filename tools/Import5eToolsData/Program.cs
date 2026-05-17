@@ -34,6 +34,8 @@ internal static class Program
     [
         "class/class-*.json",
         "spells/spells-*.json",
+        "generated/gendata-spell-source-lookup.json",
+        "generated/gendata-subclass-lookup.json",
     ];
 
     private static readonly string[] ImageFoldersToCopy =

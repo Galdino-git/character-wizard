@@ -19,4 +19,5 @@ public sealed class Catalog
     public required IReadOnlyList<FeatData>        Feats        { get; init; }
 
     public required CatalogPaths Paths { get; init; }
+    public required ClassSpellListIndex SpellListIndex { get; init; }
 }

@@ -1,3 +1,109 @@
-@* Stub — implementado em F6. *@
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
+@inject CharacterDraft Draft
+@inject ClassRepository ClassRepo
+@inject SpellRepository SpellRepo
+
 <h3>Spells</h3>
-<div class="text-muted">(em construção)</div>
+
+@if (Draft.ClassRef is not { } classRef ||
+     ClassRepo.Find(classRef) is not { } cls ||
+     !cls.IsCaster())
+{
+    <div class="text-muted">Esta classe não é conjuradora.</div>
+}
+else
+{
+    var cantripQuota = cls.CantripsKnownAtLevel(Draft.InitialLevel);
+    var spellQuota = cls.SpellsKnownAtLevel(Draft.InitialLevel);
+    var maxSpellLvl = MaxSpellLevelAvailable(Draft.InitialLevel);
+
+    <p class="text-muted small">
+        @cls.Name nível @Draft.InitialLevel: até <strong>@cantripQuota cantrips</strong>
+        e <strong>@spellQuota spells</strong>.
+    </p>
+
+    <ul class="nav nav-tabs mb-3">
+        @for (int lvl = 0; lvl <= maxSpellLvl; lvl++)
+        {
+            var levelCaptured = lvl;
+            var label = lvl == 0 ? "Cantrips" : $"Nível {lvl}";
+            <li class="nav-item">
+                <button type="button"
+                        class="nav-link @(levelCaptured == _activeLevel ? "active" : "")"
+                        @onclick="() => _activeLevel = levelCaptured">@label</button>
+            </li>
+        }
+    </ul>
+
+    @{
+        var available = SpellRepo.ForClassAtLevel(cls.Name, cls.Source, _activeLevel)
+            .OrderBy(s => s.Name)
+            .ToList();
+        var selectedAtLevel = Draft.KnownSpells
+            .Where(r => SpellRepo.Find(r) is { Level: var l } && l == _activeLevel).Count();
+        var quotaAtLevel = _activeLevel == 0 ? cantripQuota : spellQuota;
+    }
+
+    <div class="small text-muted mb-2">
+        Selecionados neste nível: @selectedAtLevel
+        @if (_activeLevel == 0 || _activeLevel == 1) { <span>· quota: @quotaAtLevel</span> }
+    </div>
+
+    @if (available.Count == 0)
+    {
+        <div class="text-muted">Nenhuma spell disponível para @cls.Name neste nível.</div>
+    }
+    else
+    {
+        <div class="list-group small" style="max-height: 420px; overflow:auto;">
+            @foreach (var sp in available)
+            {
+                var spRef = new EntityRef(sp.Name, sp.Source);
+                var chosen = Draft.KnownSpells.Any(r =>
+                    r.Name == spRef.Name && r.Source == spRef.Source);
+                <label class="list-group-item d-flex justify-content-between" style="cursor:pointer">
+                    <span>
+                        <input type="checkbox" class="form-check-input me-2"
+                               checked="@chosen"
+                               @onchange="e => Toggle(spRef, (bool)(e.Value ?? false))" />
+                        <strong>@sp.Name</strong>
+                        <span class="text-muted ms-2">· @sp.Source</span>
+                    </span>
+                    @if (sp.School is not null) { <span class="badge bg-light text-dark">@sp.School</span> }
+                </label>
+            }
+        </div>
+    }
+}
+
+@code {
+    private int _activeLevel = 0;
+
+    private void Toggle(EntityRef spRef, bool on)
+    {
+        var existing = Draft.KnownSpells.FirstOrDefault(r =>
+            r.Name == spRef.Name && r.Source == spRef.Source);
+        if (on && existing == default) Draft.KnownSpells.Add(spRef);
+        else if (!on && existing != default) Draft.KnownSpells.Remove(existing);
+    }
+
+    // Caster slot table progression: full casters get level-N slots at character level 2N-1.
+    // For MVP we conservatively expose up to spell level 1 at character level 1, 2 at 3,
+    // 3 at 5, etc. (matches full-caster table).
+    private static int MaxSpellLevelAvailable(int characterLevel) =>
+        characterLevel switch
+        {
+            <= 2  => 1,
+            <= 4  => 2,
+            <= 6  => 3,
+            <= 8  => 4,
+            <= 10 => 5,
+            <= 12 => 6,
+            <= 14 => 7,
+            <= 16 => 8,
+            _     => 9,
+        };
+}

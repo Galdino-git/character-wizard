@@ -11,12 +11,12 @@ Spec: [`../specs/wizard-enrichment.md`](../specs/wizard-enrichment.md) · Design
 
 ## F5 — Subclass
 
-- [ ] **T5.1** TDD: `ClassData_SubclassChoiceLevel_returns_correct_level` (Wizard=2, Cleric=1, Fighter=3, Sorcerer=1, Warlock=1).
-- [ ] **T5.2** Criar extension `ClassDataExtensions.SubclassChoiceLevel()` parseando `classFeatures` JsonElement.
-- [ ] **T5.3** Estender `CharacterDraft.SubclassRef`.
-- [ ] **T5.4** Criar `Components/Wizard/SubclassSelectStep.razor`.
-- [ ] **T5.5** Adicionar passo condicional em `NewCharacter.razor` (só quando `InitialLevel >= subclassLevel`).
-- [ ] **T5.6** Commit `feat(app): subclass selection step when initial level qualifies (F5)`.
+- [x] **T5.1** TDD: `ClassData_SubclassChoiceLevel_returns_correct_level` (Wizard=2, Cleric=1, Fighter=3, Sorcerer=1, Warlock=1).
+- [x] **T5.2** Criar extension `ClassDataExtensions.SubclassChoiceLevel()` parseando `classFeatures` JsonElement.
+- [x] **T5.3** Estender `CharacterDraft.SubclassRef`.
+- [x] **T5.4** Criar `Components/Wizard/SubclassSelectStep.razor`.
+- [x] **T5.5** Adicionar passo condicional em `NewCharacter.razor` (só quando `InitialLevel >= subclassLevel`).
+- [x] **T5.6** Commit `feat(app): subclass selection step when initial level qualifies (F5)`.
 
 ## F6 — Initial Spells
 

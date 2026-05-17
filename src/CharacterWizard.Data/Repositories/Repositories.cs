@@ -96,6 +96,15 @@ public sealed class SpellRepository
 
     public IEnumerable<SpellData> AtLevel(int level) => All().Where(s => s.Level == level);
 
+    /// <summary>
+    /// All spells of the given level (0 = cantrip) that can be cast by the
+    /// given class. Backed by the 5etools spell-source lookup imported under
+    /// <c>generated/</c>. Results are also subject to the active SourceFilter.
+    /// </summary>
+    public IEnumerable<SpellData> ForClassAtLevel(string className, string classSource, int spellLevel) =>
+        AtLevel(spellLevel).Where(s =>
+            _catalog.SpellListIndex.ClassHasSpell(className, classSource, s.Name, s.Source));
+
     public SpellData? Find(EntityRef r) =>
         _catalog.Spells.FirstOrDefault(x =>
             string.Equals(x.Name, r.Name, StringComparison.OrdinalIgnoreCase) &&

@@ -30,5 +30,7 @@ public sealed class CatalogPaths
     public string ClassesFolder => Path.Combine(JsonRoot, "class");
     public string SpellsFolder  => Path.Combine(JsonRoot, "spells");
 
+    public string SpellSourceLookup => Path.Combine(JsonRoot, "generated", "gendata-spell-source-lookup.json");
+
     public string ImageFolder(string category) => Path.Combine(ImageRoot, category);
 }
