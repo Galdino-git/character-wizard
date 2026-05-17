@@ -1,5 +1,7 @@
 # Tasks: Compendium Search (F1)
 
+> Status: **completed (MVP)**. T1.4.1 (`CompendiumSearchBox` reutilizável) foi simplificado para inline na própria `NewCharacter.razor` (assist) — extrair para componente quando outra tela precisar.
+
 Spec: [`../specs/compendium-search.md`](../specs/compendium-search.md) · Design: [`../design/compendium-search.md`](../design/compendium-search.md)
 
 Dependência forte: F2.5 (`EntityResolver`) e F2.7 (`EntityDetailPanel`). Pode começar `SearchService` em paralelo a F2.1-F2.4 (não depende).
@@ -37,7 +39,7 @@ Dependência forte: F2.5 (`EntityResolver`) e F2.7 (`EntityDetailPanel`). Pode c
 
 ## F1.4 — CompendiumSearchBox e integração no wizard
 
-- [ ] **T1.4.1** Criar `src/CharacterWizard.App/Components/Shared/CompendiumSearchBox.razor`. Input + lista de top-10 sugestões inline. `EventCallback<SearchEntry> OnSelect`.
-- [ ] **T1.4.2** Em `NewCharacter.razor`, header: botão "🔍 Compêndio" abre modal com `<CompendiumSearchBox>` + `<EntityDetailPanel>`.
-- [ ] **T1.4.3** Garantir que `CharacterDraft` persiste após abrir/fechar modal (já é scoped — só validar).
-- [ ] **T1.4.4** Commit: `feat(app): compendium search assist in wizard`.
+- [~] **T1.4.1** Criar `src/CharacterWizard.App/Components/Shared/CompendiumSearchBox.razor`. Input + lista de top-10 sugestões inline. `EventCallback<SearchEntry> OnSelect`.
+- [x] **T1.4.2** Em `NewCharacter.razor`, header: botão "🔍 Compêndio" abre modal com `<CompendiumSearchBox>` + `<EntityDetailPanel>`.
+- [x] **T1.4.3** Garantir que `CharacterDraft` persiste após abrir/fechar modal (já é scoped — só validar).
+- [x] **T1.4.4** Commit: `feat(app): compendium search assist in wizard`.

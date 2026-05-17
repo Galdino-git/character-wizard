@@ -1,5 +1,7 @@
 # Tasks: Tooltip System (F2)
 
+> Status: **completed (MVP)**.
+
 Spec: [`../specs/tooltip-system.md`](../specs/tooltip-system.md) · Design: [`../design/tooltip-system.md`](../design/tooltip-system.md)
 
 Cada task tem: arquivos afetados · testes · critério de done. **TDD: red → green → refactor.** Commit atômico por task concluída. Marque `[x]` quando done.

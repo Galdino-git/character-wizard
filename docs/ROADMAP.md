@@ -19,35 +19,40 @@ Visão de alto nível do que foi entregue e o que está planejado. Detalhes de c
 
 ---
 
-## 🔄 M1 — Compendium Search + Tooltip System (em planejamento)
+## ✅ M1 — Compendium Search + Tooltip System (entregue 2026-05-17)
 
 Especificação: [`docs/specs/compendium-search.md`](specs/compendium-search.md) · [`docs/specs/tooltip-system.md`](specs/tooltip-system.md)
 Tasks: [`docs/tasks/compendium-search.md`](tasks/compendium-search.md) · [`docs/tasks/tooltip-system.md`](tasks/tooltip-system.md)
 
-### Tooltip System (Feature 2)
+### Tooltip System (F2)
 
-- [ ] `EntryRenderer` em `CharacterWizard.Data/EntryRendering/` que aceita `JsonElement` (entries) e retorna `MarkupString`
-- [ ] Suporte às tags inline do MVP: `@spell @item @condition @feat @creature @skill @action @sense @feature @classFeature @damage @dice @b @i @u`
-- [ ] HTML-safe (escaping correto contra XSS)
-- [ ] Suporte a estruturas aninhadas: `entries` recursivo, `list`, `table`, `inset`
-- [ ] `EntityResolver` service: dado `(category, name, source)`, retorna a entidade
-- [ ] `<EntityRefSpan>` componente Blazor: renderiza mention com tooltip on hover (CSS-only, sem JS interop)
-- [ ] `<EntityDetailPanel>` componente Blazor compartilhado com Search: card detalhado da entidade
-- [ ] Click em mention abre o `EntityDetailPanel` em modal/sidebar
-- [ ] Integração: `EntryDisplay.razor` consome tudo acima e é usado por todas as telas que mostram descrições
+- [x] `EntryRenderer` (`CharacterWizard.Data/EntryRendering/`) processando `JsonElement` (entries) e strings → HTML safe (XSS escape em todo input)
+- [x] Tags inline suportadas: `@b @bold @i @italic @u @underline @spell @item @condition @feat @creature @skill @action @sense @feature @classFeature @subclassFeature @optfeature @damage @dice @scaledamage @scaledice @hit @atk @dc @h @note`
+- [x] Estruturas aninhadas: `entries`, `list`, `inset`, `table`, `quote`, arrays e strings
+- [x] `EntityResolver` (`Data/Resolving/`) — despacha refs aos repos existentes
+- [x] `<EntryDisplay>` componente Blazor — renderiza entries + delegation de click
+- [x] `<EntityDetailPanel>` — modal com header + imagem + body via `EntryDisplay`. Navegação push-over para refs aninhadas
+- [x] Hover tooltip CSS-only (`cw-tooltip.css`, helper JS mínimo em `cw-ref.js`)
+- [x] Integrado nos passos do wizard (Race/Class/Background) via botão "ⓘ detalhes"
 
-### Compendium Search (Feature 1)
+### Compendium Search (F1)
 
-- [ ] `SearchService` em `CharacterWizard.App/Services/`: query com filtros (categoria, source) e ordenação
-- [ ] Página `Search.razor` em `/search`: input de texto + chips de filtros + lista virtualizada de resultados
-- [ ] Click em resultado → `EntityDetailPanel` (mesmo componente do tooltip)
-- [ ] Botão "Buscar" disponível no NavMenu e dentro do wizard (assist)
-- [ ] Componente `<CompendiumSearchBox>` reutilizável (autocomplete leve)
+- [x] `SearchService` (`Data/Search/`) — busca substring case-insensitive, ranking prefix > contains, filtros categoria/source, paginação
+- [x] Página `Search.razor` (`/search`) — input com debounce 200ms, chips de categoria, lista clicável
+- [x] Click em resultado abre `<EntityDetailPanel>`
+- [x] NavMenu com link "Compêndio"
+- [x] Assist no wizard (`NewCharacter.razor`) — botão 🔍 abre overlay de busca sem perder draft
 
-### Cross-cutting
+### Cobertura de testes
 
-- [ ] Documentação dos `data-` attributes usados pelo `EntityRefSpan` em `CONVENTIONS.md` (se necessário)
-- [ ] Testes xUnit (TDD) para `EntryRenderer`, `EntityResolver`, `SearchService`
+82 testes xUnit verdes:
+- 8 base de `EntryRenderer` (b/i/u + escape)
+- 16 entity-ref tags
+- 9 formatting tags
+- 9 structured entries
+- 5 `EntityResolver`
+- 9 `SearchService`
+- 26 anteriores (catalog loader, character store, regras de jogo)
 
 ---
 
