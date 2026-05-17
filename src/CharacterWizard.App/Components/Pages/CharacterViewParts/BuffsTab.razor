@@ -1,0 +1,113 @@
+@using CharacterWizard.Core.Models
+
+<h5>Buffs permanentes</h5>
+<p class="text-muted small">
+    Modificadores que somam ao ability score base (e ao final mostrado na ficha).
+    Use para registrar tomos, bênçãos, maldições ou ajustes de campanha.
+</p>
+
+@if (Char.AbilityOverrides.Count == 0)
+{
+    <div class="text-muted small mb-3">Nenhum buff registrado.</div>
+}
+else
+{
+    <table class="table table-sm align-middle w-auto">
+        <thead><tr>
+            <th>Atributo</th>
+            <th class="text-end">Delta</th>
+            <th>Motivo</th>
+            <th></th>
+        </tr></thead>
+        <tbody>
+        @foreach (var ovr in Char.AbilityOverrides.ToList())
+        {
+            var captured = ovr;
+            <tr>
+                <td>@captured.Ability.ToString().ToUpperInvariant()</td>
+                <td class="text-end">@(captured.Delta >= 0 ? "+" : "")@captured.Delta</td>
+                <td>@captured.Reason</td>
+                <td>
+                    <button class="btn btn-sm btn-link text-danger p-0"
+                            @onclick="() => Remove(captured)">remover</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <div class="small text-muted mb-3">
+        Total agregado:
+        @foreach (var grp in Char.AbilityOverrides
+            .GroupBy(o => o.Ability)
+            .OrderBy(g => g.Key))
+        {
+            var sum = grp.Sum(o => o.Delta);
+            <span class="me-2">@grp.Key.ToString().ToUpperInvariant() @(sum >= 0 ? "+" : "")@sum</span>
+        }
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small mb-1">Atributo</label>
+                <select class="form-select form-select-sm" @bind="_newAbility">
+                    @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
+                    {
+                        <option value="@a">@a.ToString().ToUpperInvariant()</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-1">Delta</label>
+                <input type="number" class="form-control form-control-sm" @bind="_newDelta" />
+            </div>
+            <div class="col-md-5">
+                <label class="form-label small mb-1">Motivo</label>
+                <input class="form-control form-control-sm" @bind="_newReason"
+                       placeholder="Ex.: Tomo da Chama Bardica" />
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-sm btn-primary w-100" @onclick="AddOverride">+ Adicionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h5 class="mt-4">Notas</h5>
+<textarea class="form-control" rows="6"
+          @bind="Char.Notes" @bind:event="oninput"
+          @onblur="NotifyChange"
+          placeholder="Objetivos da campanha, contatos, lore do personagem..."></textarea>
+
+@code {
+    [Parameter, EditorRequired] public Character Char { get; set; } = default!;
+    [Parameter] public EventCallback OnChange { get; set; }
+
+    private Ability _newAbility = Ability.Str;
+    private int _newDelta = 1;
+    private string _newReason = "";
+
+    private async Task AddOverride()
+    {
+        Char.AbilityOverrides.Add(new AbilityOverride
+        {
+            Ability = _newAbility,
+            Delta   = _newDelta,
+            Reason  = string.IsNullOrWhiteSpace(_newReason) ? null : _newReason.Trim(),
+        });
+        _newReason = "";
+        _newDelta = 1;
+        await OnChange.InvokeAsync();
+    }
+
+    private async Task Remove(AbilityOverride o)
+    {
+        Char.AbilityOverrides.Remove(o);
+        await OnChange.InvokeAsync();
+    }
+
+    private Task NotifyChange() => OnChange.InvokeAsync();
+}

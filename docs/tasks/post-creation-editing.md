@@ -22,11 +22,11 @@ Cada task tem arquivos e critério de done. Commit atômico por task. Marque `[x
 
 ## F3.3 — Tab Inventário com CRUD + ItemPicker
 
-- [ ] **T3.3.1** Criar `Components/Shared/ItemPickerModal.razor` — modal com input + resultados de `SearchService.Search(query, ["Item"])`. Callback `EventCallback<EntityRef> OnPick`.
-- [ ] **T3.3.2** Criar `Components/Shared/ItemEditorModal.razor` — form com `CustomName`, `Quantity`, `BonusAttack`, `BonusDamage`, `BonusAc`, `Equipped`, `Notes`. Callbacks `OnSave` / `OnRemove` / `OnCancel`.
-- [ ] **T3.3.3** Criar `Components/Pages/CharacterView/InventoryTab.razor` — tabela de items + botão Adicionar (abre picker) + click em row (abre editor). Chama `Store.Save` após cada mudança.
-- [ ] **T3.3.4** Wirear `InventoryTab` em `CharacterView`.
-- [ ] **T3.3.5** Commit: `feat(app): inventory tab with item picker and editor (F3.3)`.
+- [x] **T3.3.1** Criar `Components/Shared/ItemPickerModal.razor` — modal com input + resultados de `SearchService.Search(query, ["Item"])`. Callback `EventCallback<EntityRef> OnPick`.
+- [x] **T3.3.2** Criar `Components/Shared/ItemEditorModal.razor` — form com `CustomName`, `Quantity`, `BonusAttack`, `BonusDamage`, `BonusAc`, `Equipped`, `Notes`. Callbacks `OnSave` / `OnRemove` / `OnCancel`.
+- [x] **T3.3.3** Criar `Components/Pages/CharacterView/InventoryTab.razor` — tabela de items + botão Adicionar (abre picker) + click em row (abre editor). Chama `Store.Save` após cada mudança.
+- [x] **T3.3.4** Wirear `InventoryTab` em `CharacterView`.
+- [x] **T3.3.5** Commit: `feat(app): inventory tab with item picker and editor (F3.3)`.
 
 ## F3.4 — Tab Buffs com CRUD de AbilityOverrides
 
