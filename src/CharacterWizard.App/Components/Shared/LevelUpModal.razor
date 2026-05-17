@@ -3,6 +3,7 @@
 @using CharacterWizard.Data.Models
 @using CharacterWizard.Data.Repositories
 @inject ClassRepository ClassRepo
+@inject SpellRepository SpellRepo
 
 @if (Open && Char is not null && Entry is not null && _classData is not null)
 {
@@ -107,6 +108,76 @@
             }
         }
 
+        @if (_classData.IsCaster())
+        {
+            var oldLvl = Entry.Levels;
+            var cantripDelta = _classData.CantripsKnownAtLevel(newLevel) - _classData.CantripsKnownAtLevel(oldLvl);
+            var spellDelta   = _classData.SpellsKnownAtLevel(newLevel)   - _classData.SpellsKnownAtLevel(oldLvl);
+            if (cantripDelta > 0 || spellDelta > 0)
+            {
+                <h6 class="mt-3">Aprender spells novos</h6>
+                <p class="text-muted small mb-2">
+                    Este nível concede @cantripDelta cantrip(s) e @spellDelta spell(s).
+                    Marque até o limite.
+                </p>
+
+                @if (cantripDelta > 0)
+                {
+                    <div class="mb-2">
+                        <div class="small fw-semibold mb-1">Cantrips (@_chosenCantrips.Count/@cantripDelta)</div>
+                        <div class="list-group small" style="max-height: 160px; overflow:auto;">
+                            @foreach (var sp in SpellRepo.ForClassAtLevel(_classData.Name, _classData.Source, 0)
+                                .Where(s => !Char.KnownSpells.Any(k => k.Name == s.Name && k.Source == s.Source))
+                                .OrderBy(s => s.Name).Take(40))
+                            {
+                                var spRef = new EntityRef(sp.Name, sp.Source);
+                                var chosen = _chosenCantrips.Any(r => r.Name == spRef.Name && r.Source == spRef.Source);
+                                <label class="list-group-item d-flex justify-content-between py-1" style="cursor:pointer">
+                                    <span>
+                                        <input type="checkbox" class="form-check-input me-2"
+                                               checked="@chosen"
+                                               disabled="@(!chosen && _chosenCantrips.Count >= cantripDelta)"
+                                               @onchange="e => ToggleCantrip(spRef, (bool)(e.Value ?? false))" />
+                                        @sp.Name <span class="text-muted">· @sp.Source</span>
+                                    </span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (spellDelta > 0)
+                {
+                    var maxSpellLvl = MaxSpellLevelForCaster(newLevel);
+                    <div class="mb-2">
+                        <div class="small fw-semibold mb-1">Spells (@_chosenSpells.Count/@spellDelta) — nível 1..@maxSpellLvl</div>
+                        <div class="list-group small" style="max-height: 240px; overflow:auto;">
+                            @for (int lvl = 1; lvl <= maxSpellLvl; lvl++)
+                            {
+                                foreach (var sp in SpellRepo.ForClassAtLevel(_classData.Name, _classData.Source, lvl)
+                                    .Where(s => !Char.KnownSpells.Any(k => k.Name == s.Name && k.Source == s.Source))
+                                    .OrderBy(s => s.Name).Take(60))
+                                {
+                                    var spRef = new EntityRef(sp.Name, sp.Source);
+                                    var chosen = _chosenSpells.Any(r => r.Name == spRef.Name && r.Source == spRef.Source);
+                                    <label class="list-group-item d-flex justify-content-between py-1" style="cursor:pointer">
+                                        <span>
+                                            <input type="checkbox" class="form-check-input me-2"
+                                                   checked="@chosen"
+                                                   disabled="@(!chosen && _chosenSpells.Count >= spellDelta)"
+                                                   @onchange="e => ToggleSpell(spRef, (bool)(e.Value ?? false))" />
+                                            <span class="badge bg-light text-dark me-1">nv @sp.Level</span>
+                                            @sp.Name <span class="text-muted">· @sp.Source</span>
+                                        </span>
+                                    </label>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        }
+
         <div class="d-flex justify-content-end gap-2 mt-3">
             <button class="btn btn-sm btn-outline-secondary" @onclick="Cancel">Cancelar</button>
             <button class="btn btn-sm btn-primary" @onclick="Apply">Aplicar</button>
@@ -156,7 +227,39 @@
         _asiAlloc = new();
         _featName = "";
         _featSource = "";
+        _chosenCantrips = new();
+        _chosenSpells = new();
     }
+
+    private List<EntityRef> _chosenCantrips = new();
+    private List<EntityRef> _chosenSpells = new();
+
+    private void ToggleCantrip(EntityRef r, bool on)
+    {
+        if (on) { if (!_chosenCantrips.Contains(r)) _chosenCantrips.Add(r); }
+        else _chosenCantrips.Remove(r);
+    }
+    private void ToggleSpell(EntityRef r, bool on)
+    {
+        if (on) { if (!_chosenSpells.Contains(r)) _chosenSpells.Add(r); }
+        else _chosenSpells.Remove(r);
+    }
+
+    // Mirrors the table in SpellSelectStep — full caster slot progression. For
+    // multiclass-via-this-modal we'd want effective caster level math but
+    // single-class level-up matches this.
+    private static int MaxSpellLevelForCaster(int characterLevel) => characterLevel switch
+    {
+        <= 2  => 1,
+        <= 4  => 2,
+        <= 6  => 3,
+        <= 8  => 4,
+        <= 10 => 5,
+        <= 12 => 6,
+        <= 14 => 7,
+        <= 16 => 8,
+        _     => 9,
+    };
 
     private void PickAsi() => _asiOrFeat = "asi";
     private void PickFeat() => _asiOrFeat = "feat";
@@ -201,6 +304,10 @@
                     string.IsNullOrWhiteSpace(_featSource) ? "PHB" : _featSource.Trim());
             Char.ChoicesByLevel[totalLevel] = choice;
         }
+
+        // Spells learned this level-up
+        foreach (var r in _chosenCantrips) if (!Char.KnownSpells.Contains(r)) Char.KnownSpells.Add(r);
+        foreach (var r in _chosenSpells)   if (!Char.KnownSpells.Contains(r)) Char.KnownSpells.Add(r);
 
         await OnApplied.InvokeAsync();
     }
