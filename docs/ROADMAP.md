@@ -94,21 +94,30 @@ Spec: [`docs/specs/level-up.md`](specs/level-up.md)
 
 ---
 
-### Pendente (movido para M3+)
+---
 
-- [ ] Multiclass (subir para classe diferente da atual)
-- [ ] Auto-aplicar features de classe/subclass no level-up (hoje só registra `Levels` e `SubclassRef`)
-- [ ] Pick de feat com modal de pesquisa (hoje aceita name/source manual no level-up)
-- [ ] Spells aprendidos no level-up (hoje passo de criação só; usuário edita via aba após)
+## ✅ F9 — Character Lifecycle Polish (entregue 2026-05-17)
+
+Spec: [`docs/specs/character-lifecycle-polish.md`](specs/character-lifecycle-polish.md) · Tasks: [`docs/tasks/character-lifecycle-polish.md`](tasks/character-lifecycle-polish.md)
+
+- [x] **F9.1** `FeatPickerModal` integrado no level-up (sem input manual obrigatório)
+- [x] **F9.2** Spells aprendidos no level-up (deltas de cantrips/spells por classe + caster level table; respeita quotas)
+- [x] **F9.3** Features de classe/subclass ganhas mostradas no level-up modal e listadas no `SheetTab` (`ClassDataExtensions.FeaturesAtLevel`/`FeaturesUpToLevel`/`SubclassDataExtensions.FeaturesAtLevel` — 3 testes)
+- [x] **F9.4** Multiclass — radio "Subir existente | Adicionar classe" + dropdown de classes (excluindo as já no personagem); cria novo `CharacterClassEntry` quando aplicado; subclass forçada quando classe nova tem sub no nv 1
+
+### Métrica
+**118 testes verdes**.
+
+---
 
 ## 🗺️ M3 — UX e polish (a especificar)
 
 - [ ] Tela de Configurações: toggles de sources (grupos do `books.json`)
 - [ ] Tema dark
 - [ ] Export/Import de personagem em JSON
-- [ ] Suporte a multiclass no wizard
+- [ ] Multiclass no wizard inicial (criação direto multiclass — hoje só via level-up)
 - [ ] Resolver `_copy` entries do 5etools (raças e subclasses que herdam de outra)
-- [ ] Telemetria local (qual class é mais escolhida, etc.) — opcional
+- [ ] Telemetria local (opcional)
 
 ## 🗺️ M4 — Distribuição (a especificar)
 
