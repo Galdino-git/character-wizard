@@ -1,0 +1,54 @@
+@page "/"
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Core.Persistence
+@using CharacterWizard.Core.Rules
+@inject CharacterStore Store
+@inject NavigationManager Nav
+
+<h1>Personagens</h1>
+
+@if (_characters.Count == 0)
+{
+    <div class="alert alert-secondary mt-3">
+        Nenhum personagem ainda. <a href="new">Criar o primeiro &rarr;</a>
+    </div>
+}
+else
+{
+    <div class="row g-3 mt-1">
+        @foreach (var c in _characters)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@c.Name</h5>
+                        <p class="card-text mb-1">
+                            <strong>Nível @c.TotalLevel</strong>
+                            @if (c.RaceRef is { } r)
+                            {
+                                <span> · @r.Name</span>
+                            }
+                        </p>
+                        <p class="card-text text-muted small">
+                            @string.Join(" / ", c.Classes.Select(x => $"{x.ClassRef.Name} {x.Levels}"))
+                        </p>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => Open(c.Id)">Abrir</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<div class="mt-4">
+    <a class="btn btn-primary" href="new">+ Novo personagem</a>
+</div>
+
+@code {
+    private List<Character> _characters = new();
+
+    protected override void OnInitialized() =>
+        _characters = Store.LoadAll().OrderByDescending(c => c.UpdatedUtc).ToList();
+
+    private void Open(Guid id) => Nav.NavigateTo($"character/{id}");
+}

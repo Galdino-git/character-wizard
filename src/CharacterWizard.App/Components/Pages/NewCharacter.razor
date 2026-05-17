@@ -1,0 +1,66 @@
+@page "/new"
+@using CharacterWizard.App.Components.Wizard
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Persistence
+@inject CharacterDraft Draft
+@inject CharacterStore Store
+@inject NavigationManager Nav
+
+<h1>Novo personagem</h1>
+
+<ul class="nav nav-pills mb-3">
+    @for (int i = 0; i < _steps.Length; i++)
+    {
+        var idx = i;
+        <li class="nav-item">
+            <button type="button"
+                    class="nav-link @(idx == _step ? "active" : "")"
+                    @onclick="() => Go(idx)">
+                @(idx + 1). @_steps[idx]
+            </button>
+        </li>
+    }
+</ul>
+
+<div class="wizard-step">
+    @switch (_step)
+    {
+        case 0: <BasicsStep />        break;
+        case 1: <RaceSelectStep />    break;
+        case 2: <ClassSelectStep />   break;
+        case 3: <BackgroundSelectStep /> break;
+        case 4: <AbilitiesStep />     break;
+        case 5: <ReviewStep />        break;
+    }
+</div>
+
+<div class="mt-4 d-flex justify-content-between">
+    <button class="btn btn-outline-secondary" disabled="@(_step == 0)" @onclick="Prev">&larr; Voltar</button>
+    @if (_step < _steps.Length - 1)
+    {
+        <button class="btn btn-primary" @onclick="Next">Avançar &rarr;</button>
+    }
+    else
+    {
+        <button class="btn btn-success" @onclick="Save">Salvar personagem</button>
+    }
+</div>
+
+@code {
+    private readonly string[] _steps =
+        { "Origem", "Raça", "Classe", "Background", "Atributos", "Revisão" };
+    private int _step;
+
+    protected override void OnInitialized() => Draft.Reset();
+
+    private void Go(int i) => _step = Math.Clamp(i, 0, _steps.Length - 1);
+    private void Next() => _step = Math.Min(_step + 1, _steps.Length - 1);
+    private void Prev() => _step = Math.Max(_step - 1, 0);
+
+    private void Save()
+    {
+        var c = Draft.ToCharacter();
+        Store.Save(c);
+        Nav.NavigateTo($"character/{c.Id}");
+    }
+}

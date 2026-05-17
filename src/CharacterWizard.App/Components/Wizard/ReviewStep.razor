@@ -1,0 +1,36 @@
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Core.Rules
+@inject CharacterDraft Draft
+
+<h3>Revisão</h3>
+<p class="text-muted">Confira os dados antes de salvar.</p>
+
+<dl class="row" style="max-width: 36rem;">
+    <dt class="col-sm-3">Nome</dt>             <dd class="col-sm-9">@Draft.Name</dd>
+    <dt class="col-sm-3">Nível inicial</dt>    <dd class="col-sm-9">@Draft.InitialLevel</dd>
+    <dt class="col-sm-3">Raça</dt>             <dd class="col-sm-9">@RefText(Draft.RaceRef)</dd>
+    <dt class="col-sm-3">Classe</dt>           <dd class="col-sm-9">@RefText(Draft.ClassRef)</dd>
+    <dt class="col-sm-3">Background</dt>       <dd class="col-sm-9">@RefText(Draft.BackgroundRef)</dd>
+</dl>
+
+<h5>Atributos</h5>
+<table class="table table-sm w-auto">
+    <thead><tr>
+        @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
+        { <th>@a.ToString().ToUpperInvariant()</th> }
+    </tr></thead>
+    <tbody><tr>
+        @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
+        {
+            var score = Draft.BaseAbilityScores.Get(a);
+            var mod = AbilityScoreCalculator.Modifier(score);
+            <td>@score <span class="text-muted small">(@(mod >= 0 ? "+" : "")@mod)</span></td>
+        }
+    </tr></tbody>
+</table>
+
+@code {
+    private static string RefText(EntityRef? r) =>
+        r is null ? "(não selecionado)" : $"{r.Value.Name} ({r.Value.Source})";
+}

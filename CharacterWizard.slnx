@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CharacterWizard.App/CharacterWizard.App.csproj" />
+    <Project Path="src/CharacterWizard.Core/CharacterWizard.Core.csproj" />
+    <Project Path="src/CharacterWizard.Data/CharacterWizard.Data.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CharacterWizard.Tests/CharacterWizard.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Import5eToolsData/Import5eToolsData.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,16 @@
+@using CharacterWizard.App.Services
+@inject CharacterDraft Draft
+
+<h3>Origem</h3>
+<p class="text-muted">Defina o nome e o nível inicial do personagem.</p>
+
+<div class="mb-3">
+    <label class="form-label">Nome</label>
+    <input class="form-control" @bind="Draft.Name" placeholder="Ex.: Elaria" />
+</div>
+
+<div class="mb-3" style="max-width: 12rem;">
+    <label class="form-label">Nível inicial</label>
+    <input type="number" class="form-control" min="1" max="20" @bind="Draft.InitialLevel" />
+    <div class="form-text">Suba para começar um personagem em nível mais alto (até 20).</div>
+</div>

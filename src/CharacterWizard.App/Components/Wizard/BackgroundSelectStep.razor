@@ -1,0 +1,57 @@
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
+@inject CharacterDraft Draft
+@inject BackgroundRepository BgRepo
+@inject ImageService Images
+
+<h3>Background</h3>
+
+<div class="mb-3" style="max-width: 22rem;">
+    <input class="form-control form-control-sm" placeholder="Filtrar..."
+           @bind="_filter" @bind:event="oninput" />
+</div>
+
+<div class="row g-3">
+    @foreach (var b in Filtered())
+    {
+        var selected = Draft.BackgroundRef is { Name: var n, Source: var s }
+                    && n == b.Name && s == b.Source;
+        var img = Images.GetBackgroundImage(b.Name, b.Source);
+
+        <div class="col-md-4 col-lg-3">
+            <div class="card h-100 @(selected ? "border-primary" : "")"
+                 style="cursor:pointer" @onclick="() => Pick(b)">
+                @if (img is not null)
+                {
+                    <img src="@img" class="card-img-top"
+                         style="object-fit:cover; height:120px;" alt="@b.Name" />
+                }
+                else
+                {
+                    <div class="card-img-top bg-secondary"
+                         style="height:120px; opacity:0.2;"></div>
+                }
+                <div class="card-body p-2">
+                    <div class="fw-semibold">@b.Name</div>
+                    <div class="small text-muted">@b.Source</div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string _filter = "";
+
+    private IEnumerable<BackgroundData> Filtered() =>
+        BgRepo.All()
+            .Where(b => string.IsNullOrEmpty(_filter) ||
+                        b.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(b => b.Name)
+            .Take(100);
+
+    private void Pick(BackgroundData b) =>
+        Draft.BackgroundRef = new EntityRef(b.Name, b.Source);
+}

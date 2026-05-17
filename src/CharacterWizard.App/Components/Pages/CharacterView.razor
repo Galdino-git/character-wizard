@@ -1,0 +1,105 @@
+@page "/character/{Id:guid}"
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Core.Persistence
+@using CharacterWizard.Core.Rules
+@inject CharacterStore Store
+@inject NavigationManager Nav
+
+@if (_character is null)
+{
+    <div class="alert alert-warning">Personagem não encontrado.</div>
+    <a class="btn btn-sm btn-outline-secondary" href="">&larr; Voltar</a>
+}
+else
+{
+    var c = _character;
+    var final = AbilityScoreCalculator.ComputeFinal(c);
+    var pb = ProficiencyBonus.ForLevel(c.TotalLevel);
+
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1 class="mb-0">@c.Name</h1>
+            <div class="text-muted">
+                @if (c.RaceRef is { } r) { <span>@r.Name · </span> }
+                @string.Join(" / ", c.Classes.Select(x => $"{x.ClassRef.Name} {x.Levels}"))
+                · Nível total @c.TotalLevel
+            </div>
+        </div>
+        <div>
+            <button class="btn btn-sm btn-outline-danger" @onclick="Delete">Excluir</button>
+            <a class="btn btn-sm btn-outline-secondary" href="">Voltar</a>
+        </div>
+    </div>
+
+    <hr />
+
+    <h5>Atributos</h5>
+    <table class="table table-sm w-auto">
+        <thead><tr>
+            @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
+            { <th>@a.ToString().ToUpperInvariant()</th> }
+            <th>Prof.</th>
+        </tr></thead>
+        <tbody><tr>
+            @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
+            {
+                var score = final.Get(a);
+                var mod = AbilityScoreCalculator.Modifier(score);
+                <td>@score <small class="text-muted">(@(mod >= 0 ? "+" : "")@mod)</small></td>
+            }
+            <td>+@pb</td>
+        </tr></tbody>
+    </table>
+
+    @if (c.AbilityOverrides.Count > 0)
+    {
+        <h6>Overrides aplicados</h6>
+        <ul>
+            @foreach (var o in c.AbilityOverrides)
+            {
+                <li>
+                    @o.Ability.ToString().ToUpperInvariant(): @(o.Delta >= 0 ? "+" : "")@o.Delta
+                    @if (!string.IsNullOrEmpty(o.Reason)) { <span class="text-muted">— @o.Reason</span> }
+                </li>
+            }
+        </ul>
+    }
+
+    @if (c.Inventory.Count > 0)
+    {
+        <h5 class="mt-4">Inventário</h5>
+        <ul>
+            @foreach (var i in c.Inventory)
+            {
+                <li>
+                    @(i.CustomName ?? i.ItemRef.Name)
+                    @if (i.Quantity != 1) { <span> ×@i.Quantity</span> }
+                    @if (i.BonusAttack != 0 || i.BonusDamage != 0)
+                    {
+                        <small class="text-muted"> (+@i.BonusAttack atq / +@i.BonusDamage dano)</small>
+                    }
+                </li>
+            }
+        </ul>
+    }
+
+    <div class="alert alert-info mt-4 small">
+        Este MVP mostra a ficha em modo leitura. Edição de inventário, level-up, escolha de
+        subclass/subraça, spells e equipamento inicial entram nas próximas iterações.
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private Character? _character;
+
+    protected override void OnParametersSet() => _character = Store.Load(Id);
+
+    private void Delete()
+    {
+        if (_character is null) return;
+        Store.Delete(_character.Id);
+        Nav.NavigateTo("");
+    }
+}

@@ -1,0 +1,49 @@
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
+@inject CharacterDraft Draft
+@inject ClassRepository ClassRepo
+@inject ImageService Images
+
+<h3>Classe</h3>
+
+<div class="row g-3">
+    @foreach (var c in ClassRepo.All().OrderBy(c => c.Name))
+    {
+        var selected = Draft.ClassRef is { Name: var n, Source: var s }
+                    && n == c.Name && s == c.Source;
+        var img = Images.GetClassImage(c.Name, c.Source);
+
+        <div class="col-md-4 col-lg-3">
+            <div class="card h-100 @(selected ? "border-primary" : "")"
+                 style="cursor:pointer" @onclick="() => Pick(c)">
+                @if (img is not null)
+                {
+                    <img src="@img" class="card-img-top"
+                         style="object-fit:cover; height:160px;" alt="@c.Name" />
+                }
+                else
+                {
+                    <div class="card-img-top bg-secondary"
+                         style="height:160px; opacity:0.2;"></div>
+                }
+                <div class="card-body p-2">
+                    <div class="fw-semibold">@c.Name</div>
+                    <div class="small text-muted">
+                        @c.Source · d@(c.HitDice?.Faces) HD
+                        @if (!string.IsNullOrEmpty(c.SpellcastingAbility))
+                        {
+                            <span> · @c.SpellcastingAbility.ToUpperInvariant()</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private void Pick(ClassData c) =>
+        Draft.ClassRef = new EntityRef(c.Name, c.Source);
+}
