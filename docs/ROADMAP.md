@@ -126,8 +126,31 @@ Spec: [`docs/specs/m3-configurations-and-polish.md`](specs/m3-configurations-and
 ### Descopo definitivo
 - Telemetria local — fora do escopo de ferramenta pessoal.
 
-## 🗺️ M4 — Distribuição (a especificar)
+## 🔄 M4 — Distribuição (planejada)
 
-- [ ] Empacotar como MSIX ou single-file `.exe` instalável
-- [ ] Embutir dados via `MauiAsset` em vez de pasta `data/` lado a lado
-- [ ] Auto-update dos dados quando o repo 5etools mudar
+Spec: [`docs/specs/m4-distribution.md`](specs/m4-distribution.md) · Design: [`docs/design/m4-distribution.md`](design/m4-distribution.md) · Tasks: [`docs/tasks/m4-distribution.md`](tasks/m4-distribution.md)
+
+Objetivo: virar `.exe` self-contained Windows distribuível com dados embarcados e fluxo de update documentado.
+
+### F15 — Windows packaging
+- [ ] `dotnet publish` self-contained `win-x64` validado em Release
+- [ ] `docs/release.md` com instruções + troubleshooting (WebView2, antivírus, espaço)
+- [ ] `tools/Build-Release.ps1` (import dados → empacota zip de conteúdo → publish → zip de distribuição)
+- [ ] Validação em VM Windows limpa
+
+### F16 — Embedded data + first-run extraction
+- [ ] `cw-content.zip` único embarcado via `MauiAsset` (em vez de muitos arquivos soltos)
+- [ ] `ContentBootstrapper` extrai pra `%AppData%/CharacterWizard/content/` no startup, com check de hash
+- [ ] `AppPaths.DataRoot` aponta para AppData com fallback dev via env `CW_DATA_OVERRIDE`
+- [ ] TDD: extraction / skip / re-extract scenarios
+
+### F17 — Manual content update flow
+- [ ] Seção "Conteúdo do 5etools" no Settings mostrando manifesto e botão "Reextrair"
+- [ ] CLI `Import5eToolsData` segue funcional para devs
+- [ ] README explica upgrade = baixar novo zip
+
+### Descopo (registrado na spec)
+- MSIX e Microsoft Store
+- Auto-update do app via internet
+- Cross-platform (macOS/Linux/mobile)
+- Assinatura comercial
