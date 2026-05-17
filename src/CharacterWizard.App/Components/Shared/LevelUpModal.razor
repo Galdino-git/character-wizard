@@ -5,22 +5,69 @@
 @inject ClassRepository ClassRepo
 @inject SpellRepository SpellRepo
 
-@if (Open && Char is not null && Entry is not null && _classData is not null)
+@if (Open && Char is not null && Entry is not null)
 {
-    var newLevel = Entry.Levels + 1;
-    var conMod = AbilityScoreCalculator.Modifier(AbilityScoreCalculator.ComputeFinal(Char).Con);
-    var hpGain = LevelUpRules.HpGainedAtLevel(newLevel,
-        _classData.HitDice?.Faces ?? 8, conMod, _hpMode, _manualRoll);
+    var activeEntry = _multiclassEntry ?? Entry;
+    var classData = _multiclassEntry is not null ? _multiclassClassData : _classData;
 
     <div class="cw-modal-backdrop" @onclick="Cancel"></div>
     <div class="cw-modal" role="dialog" aria-modal="true">
         <div class="cw-modal-header">
             <div>
                 <div class="text-muted small text-uppercase">Subir nível</div>
-                <h5 class="mb-0">@_classData.Name @Entry.Levels &rarr; @newLevel</h5>
+                <h5 class="mb-0">
+                    @(classData?.Name ?? "?") @(activeEntry.Levels)
+                    @if (classData is not null) { <span>&rarr; @(activeEntry.Levels + 1)</span> }
+                </h5>
             </div>
             <button class="cw-modal-close" @onclick="Cancel" aria-label="Fechar">✕</button>
         </div>
+
+        <div class="d-flex gap-3 mb-2">
+            <div class="form-check">
+                <input type="radio" class="form-check-input" id="mode-existing-@_uid" name="mode-@_uid"
+                       checked="@(!_multiclassMode)" @onchange="PickExistingMode" />
+                <label class="form-check-label" for="mode-existing-@_uid">Subir @Entry.ClassRef.Name</label>
+            </div>
+            <div class="form-check">
+                <input type="radio" class="form-check-input" id="mode-multi-@_uid" name="mode-@_uid"
+                       checked="@_multiclassMode" @onchange="PickMulticlassMode" />
+                <label class="form-check-label" for="mode-multi-@_uid">Adicionar classe (multiclass)</label>
+            </div>
+        </div>
+
+        @if (_multiclassMode)
+        {
+            <div class="mb-2">
+                <label class="form-label small mb-0">Classe nova</label>
+                <select class="form-select form-select-sm" value="@_multiclassPick" @onchange="OnMulticlassClassChanged">
+                    <option value="">— escolha —</option>
+                    @foreach (var c in ClassRepo.All()
+                        .Where(c => !Char.Classes.Any(e => e.ClassRef.Name == c.Name && e.ClassRef.Source == c.Source))
+                        .OrderBy(c => c.Name))
+                    {
+                        <option value="@($"{c.Name}|{c.Source}")">@c.Name <span>· @c.Source</span></option>
+                    }
+                </select>
+                <div class="alert alert-info small mt-2 mb-0">
+                    Pré-requisitos RAW (STR/DEX/CHA 13 etc.) <strong>não</strong> são verificados.
+                </div>
+            </div>
+        }
+
+        @if (classData is null)
+        {
+            <div class="text-muted small">Selecione uma classe acima para continuar.</div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+                <button class="btn btn-sm btn-outline-secondary" @onclick="Cancel">Cancelar</button>
+            </div>
+        }
+        else
+        {
+            var newLevel = activeEntry.Levels + 1;
+            var conMod = AbilityScoreCalculator.Modifier(AbilityScoreCalculator.ComputeFinal(Char).Con);
+            var hpGain = LevelUpRules.HpGainedAtLevel(newLevel,
+                classData.HitDice?.Faces ?? 8, conMod, _hpMode, _manualRoll);
 
         <h6>HP</h6>
         <div class="d-flex gap-2 align-items-center mb-2">
@@ -36,11 +83,11 @@
             <span class="small text-muted">→ HP ganho: <strong>@hpGain</strong> (incl. CON @(conMod >= 0 ? "+" : "")@conMod)</span>
         </div>
 
-        @{ var subLvl = _classData.SubclassChoiceLevel() ?? 0; }
-        @if (newLevel == subLvl && Entry.SubclassRef is null)
+            var subLvl = classData.SubclassChoiceLevel() ?? 0;
+            if (newLevel == subLvl && activeEntry.SubclassRef is null)
         {
             <h6 class="mt-3">Subclass <small class="text-muted">(escolha obrigatória)</small></h6>
-            var subs = ClassRepo.SubclassesOf(Entry.ClassRef).OrderBy(s => s.Name).ToList();
+            var subs = ClassRepo.SubclassesOf(activeEntry.ClassRef).OrderBy(s => s.Name).ToList();
             <select class="form-select form-select-sm" @bind="_subclassKey">
                 <option value="">— escolha —</option>
                 @foreach (var s in subs)
@@ -108,34 +155,32 @@
             }
         }
 
-        @{
-            var gained = _classData.FeaturesAtLevel(newLevel).ToList();
-            var subclassGained = Entry.SubclassRef is { } srRef
-                ? (ClassRepo.SubclassesOf(Entry.ClassRef)
+            var gained = classData.FeaturesAtLevel(newLevel).ToList();
+            var subclassGained = activeEntry.SubclassRef is { } srRef
+                ? (ClassRepo.SubclassesOf(activeEntry.ClassRef)
                     .FirstOrDefault(s => s.Name == srRef.Name && s.Source == srRef.Source)
                     ?.FeaturesAtLevel(newLevel).ToList() ?? new())
                 : new();
-        }
         @if (gained.Count > 0 || subclassGained.Count > 0)
         {
             <h6 class="mt-3">Features ganhas neste nível</h6>
             <ul class="small mb-0">
                 @foreach (var n in gained)
                 {
-                    <li><strong>@n</strong> <span class="text-muted">— @_classData.Name nv @newLevel</span></li>
+                    <li><strong>@n</strong> <span class="text-muted">— @classData.Name nv @newLevel</span></li>
                 }
                 @foreach (var n in subclassGained)
                 {
-                    <li><strong>@n</strong> <span class="text-muted">— @Entry.SubclassRef!.Value.Name nv @newLevel</span></li>
+                    <li><strong>@n</strong> <span class="text-muted">— @activeEntry.SubclassRef!.Value.Name nv @newLevel</span></li>
                 }
             </ul>
         }
 
-        @if (_classData.IsCaster())
+        @if (classData.IsCaster())
         {
-            var oldLvl = Entry.Levels;
-            var cantripDelta = _classData.CantripsKnownAtLevel(newLevel) - _classData.CantripsKnownAtLevel(oldLvl);
-            var spellDelta   = _classData.SpellsKnownAtLevel(newLevel)   - _classData.SpellsKnownAtLevel(oldLvl);
+            var oldLvl = activeEntry.Levels;
+            var cantripDelta = classData.CantripsKnownAtLevel(newLevel) - classData.CantripsKnownAtLevel(oldLvl);
+            var spellDelta   = classData.SpellsKnownAtLevel(newLevel)   - classData.SpellsKnownAtLevel(oldLvl);
             if (cantripDelta > 0 || spellDelta > 0)
             {
                 <h6 class="mt-3">Aprender spells novos</h6>
@@ -149,7 +194,7 @@
                     <div class="mb-2">
                         <div class="small fw-semibold mb-1">Cantrips (@_chosenCantrips.Count/@cantripDelta)</div>
                         <div class="list-group small" style="max-height: 160px; overflow:auto;">
-                            @foreach (var sp in SpellRepo.ForClassAtLevel(_classData.Name, _classData.Source, 0)
+                            @foreach (var sp in SpellRepo.ForClassAtLevel(classData.Name, classData.Source, 0)
                                 .Where(s => !Char.KnownSpells.Any(k => k.Name == s.Name && k.Source == s.Source))
                                 .OrderBy(s => s.Name).Take(40))
                             {
@@ -177,7 +222,7 @@
                         <div class="list-group small" style="max-height: 240px; overflow:auto;">
                             @for (int lvl = 1; lvl <= maxSpellLvl; lvl++)
                             {
-                                foreach (var sp in SpellRepo.ForClassAtLevel(_classData.Name, _classData.Source, lvl)
+                                foreach (var sp in SpellRepo.ForClassAtLevel(classData.Name, classData.Source, lvl)
                                     .Where(s => !Char.KnownSpells.Any(k => k.Name == s.Name && k.Source == s.Source))
                                     .OrderBy(s => s.Name).Take(60))
                                 {
@@ -201,10 +246,11 @@
             }
         }
 
-        <div class="d-flex justify-content-end gap-2 mt-3">
-            <button class="btn btn-sm btn-outline-secondary" @onclick="Cancel">Cancelar</button>
-            <button class="btn btn-sm btn-primary" @onclick="Apply">Aplicar</button>
-        </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+                <button class="btn btn-sm btn-outline-secondary" @onclick="Cancel">Cancelar</button>
+                <button class="btn btn-sm btn-primary" @onclick="Apply">Aplicar</button>
+            </div>
+        }
     </div>
 
     <FeatPickerModal Open="_featPickerOpen"
@@ -229,6 +275,41 @@
     private string _featSource = "";
     private bool _featPickerOpen;
     private readonly string _uid = Guid.NewGuid().ToString("N");
+
+    // Multiclass state — when active, we operate on a transient entry that gets
+    // appended to Char.Classes on Apply (instead of mutating the parent's Entry).
+    private bool _multiclassMode;
+    private string _multiclassPick = "";
+    private CharacterClassEntry? _multiclassEntry;
+    private ClassData? _multiclassClassData;
+
+    private void PickExistingMode()
+    {
+        _multiclassMode = false;
+        _multiclassEntry = null;
+        _multiclassClassData = null;
+        _multiclassPick = "";
+    }
+
+    private void PickMulticlassMode()
+    {
+        _multiclassMode = true;
+    }
+
+    private void OnMulticlassClassChanged(ChangeEventArgs e)
+    {
+        _multiclassPick = e.Value?.ToString() ?? "";
+        var parts = _multiclassPick.Split('|');
+        if (parts.Length != 2)
+        {
+            _multiclassEntry = null;
+            _multiclassClassData = null;
+            return;
+        }
+        var classRef = new EntityRef(parts[0], parts[1]);
+        _multiclassClassData = ClassRepo.Find(classRef);
+        _multiclassEntry = new CharacterClassEntry { ClassRef = classRef, Levels = 0 };
+    }
 
     private string DisplayFeat() =>
         string.IsNullOrEmpty(_featName) ? "" : $"{_featName} ({_featSource})";
@@ -298,28 +379,38 @@
 
     private async Task Apply()
     {
-        if (Char is null || Entry is null || _classData is null) return;
+        if (Char is null || Entry is null) return;
 
-        var newLevel = Entry.Levels + 1;
+        // Resolve which entry is being modified and its backing class data.
+        var activeEntry = _multiclassEntry ?? Entry;
+        var classData = _multiclassEntry is not null ? _multiclassClassData : _classData;
+        if (classData is null) return;
+
+        var newLevel = activeEntry.Levels + 1;
         var conMod = AbilityScoreCalculator.Modifier(AbilityScoreCalculator.ComputeFinal(Char).Con);
         var hpGain = LevelUpRules.HpGainedAtLevel(newLevel,
-            _classData.HitDice?.Faces ?? 8, conMod, _hpMode, _manualRoll);
+            classData.HitDice?.Faces ?? 8, conMod, _hpMode, _manualRoll);
 
-        Entry.HitPointRolls.Add(hpGain);
-        Entry.Levels = newLevel;
+        activeEntry.HitPointRolls.Add(hpGain);
+        activeEntry.Levels = newLevel;
 
         // Subclass pick when crossing the threshold
-        var subLvl = _classData.SubclassChoiceLevel() ?? 0;
-        if (newLevel == subLvl && Entry.SubclassRef is null && _subclassKey.Length > 0)
+        var subLvl = classData.SubclassChoiceLevel() ?? 0;
+        if (newLevel == subLvl && activeEntry.SubclassRef is null && _subclassKey.Length > 0)
         {
             var parts = _subclassKey.Split('|');
-            if (parts.Length == 2) Entry.SubclassRef = new EntityRef(parts[0], parts[1]);
+            if (parts.Length == 2) activeEntry.SubclassRef = new EntityRef(parts[0], parts[1]);
         }
 
-        // ASI/feat
-        if (LevelUpRules.IsAsiLevel(newLevel))
+        // Commit multiclass entry into the character (must happen before computing
+        // totalLevel for ASI keys so the new class level counts).
+        if (_multiclassEntry is not null && !Char.Classes.Contains(_multiclassEntry))
+            Char.Classes.Add(_multiclassEntry);
+
+        // ASI/feat — only on existing-class level-ups (RAW: ASIs are per-class-level).
+        if (!_multiclassMode && LevelUpRules.IsAsiLevel(newLevel))
         {
-            var totalLevel = Char.TotalLevel; // already updated since Entry.Levels++
+            var totalLevel = Char.TotalLevel;
             var choice = new LevelChoices { AsiOrFeat = _asiOrFeat };
             if (_asiOrFeat == "asi") choice.AsiAllocation = new(_asiAlloc);
             else if (!string.IsNullOrWhiteSpace(_featName))
