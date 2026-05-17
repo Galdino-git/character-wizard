@@ -10,8 +10,26 @@
     <dt class="col-sm-3">Nome</dt>             <dd class="col-sm-9">@Draft.Name</dd>
     <dt class="col-sm-3">Nível inicial</dt>    <dd class="col-sm-9">@Draft.InitialLevel</dd>
     <dt class="col-sm-3">Raça</dt>             <dd class="col-sm-9">@RefText(Draft.RaceRef)</dd>
+    @if (!string.IsNullOrEmpty(Draft.SubraceName))
+    {
+        <dt class="col-sm-3">Subraça</dt>      <dd class="col-sm-9">@Draft.SubraceName</dd>
+    }
     <dt class="col-sm-3">Classe</dt>           <dd class="col-sm-9">@RefText(Draft.ClassRef)</dd>
+    @if (Draft.SubclassRef is not null)
+    {
+        <dt class="col-sm-3">Subclass</dt>     <dd class="col-sm-9">@RefText(Draft.SubclassRef)</dd>
+    }
     <dt class="col-sm-3">Background</dt>       <dd class="col-sm-9">@RefText(Draft.BackgroundRef)</dd>
+    @if (Draft.KnownSpells.Count > 0)
+    {
+        <dt class="col-sm-3">Spells</dt>
+        <dd class="col-sm-9">@Draft.KnownSpells.Count spell(s) escolhida(s)</dd>
+    }
+    @if (Draft.Inventory.Count > 0)
+    {
+        <dt class="col-sm-3">Inventário</dt>
+        <dd class="col-sm-9">@Draft.Inventory.Count item(s)</dd>
+    }
 </dl>
 
 <h5>Atributos</h5>
