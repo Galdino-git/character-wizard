@@ -1,3 +1,93 @@
-@* Stub — implementado em F7. *@
+@using CharacterWizard.App.Components.Shared
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Data.EntryRendering
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
+@inject CharacterDraft Draft
+@inject ClassRepository ClassRepo
+@inject BackgroundRepository BgRepo
+
 <h3>Equipamento</h3>
-<div class="text-muted">(em construção)</div>
+<p class="text-muted small">
+    Itens iniciais sugeridos pela classe e background — adicione os que aplicarem
+    ou inclua qualquer outro pelo compêndio. Pode editar bônus/quantidade depois
+    pela aba <em>Inventário</em>.
+</p>
+
+@{
+    var cls = Draft.ClassRef is { } cr ? ClassRepo.Find(cr) : null;
+    var bg  = Draft.BackgroundRef is { } br ? BgRepo.Find(br) : null;
+}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <h6>Sugestão da classe</h6>
+        @if (cls?.StartingEquipment is { } se)
+        {
+            <div class="border rounded p-2 small bg-light">
+                @((MarkupString)EntryRenderer.Render(se))
+            </div>
+        }
+        else
+        {
+            <div class="text-muted small">Sem sugestão estruturada para esta classe.</div>
+        }
+    </div>
+    <div class="col-md-6">
+        <h6>Sugestão do background</h6>
+        @if (bg?.StartingEquipment is { } se)
+        {
+            <div class="border rounded p-2 small bg-light">
+                @((MarkupString)EntryRenderer.Render(se))
+            </div>
+        }
+        else
+        {
+            <div class="text-muted small">Sem sugestão estruturada para este background.</div>
+        }
+    </div>
+</div>
+
+<hr />
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h6 class="mb-0">Inventário inicial</h6>
+    <button class="btn btn-sm btn-primary" @onclick="() => _pickerOpen = true">+ Adicionar item</button>
+</div>
+
+@if (Draft.Inventory.Count == 0)
+{
+    <div class="text-muted small">Nenhum item ainda.</div>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var item in Draft.Inventory.ToList())
+        {
+            var captured = item;
+            <li class="list-group-item d-flex justify-content-between align-items-center py-1">
+                <span>
+                    @captured.ItemRef.Name
+                    <span class="text-muted small">· @captured.ItemRef.Source</span>
+                </span>
+                <button class="btn btn-sm btn-link text-danger p-0"
+                        @onclick="() => Draft.Inventory.Remove(captured)">remover</button>
+            </li>
+        }
+    </ul>
+}
+
+<ItemPickerModal Open="_pickerOpen"
+                 OnPick="OnItemPicked"
+                 OnCancel="() => _pickerOpen = false" />
+
+@code {
+    private bool _pickerOpen;
+
+    private void OnItemPicked(EntityRef itemRef)
+    {
+        Draft.Inventory.Add(new InventoryItem { ItemRef = itemRef });
+        _pickerOpen = false;
+    }
+}

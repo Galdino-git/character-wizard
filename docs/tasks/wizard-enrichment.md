@@ -20,13 +20,13 @@ Spec: [`../specs/wizard-enrichment.md`](../specs/wizard-enrichment.md) · Design
 
 ## F6 — Initial Spells
 
-- [ ] **T6.1** TDD: `SpellRepository_ForClassAtLevel_filters_by_class` e `..._filters_by_level` (usando catálogo real).
-- [ ] **T6.2** Adicionar método `SpellRepository.ForClassAtLevel(className, classSource, spellLevel)`.
-- [ ] **T6.3** TDD: helpers em `ClassDataExtensions` — `CantripsKnownAtLevel(level)` e `SpellsKnownAtLevel(level)` (lendo `cantripProgression` e `spellsKnownProgressionFixed`).
-- [ ] **T6.4** Estender `CharacterDraft.KnownSpells`.
-- [ ] **T6.5** Criar `Components/Wizard/SpellSelectStep.razor` — tabs por nível de spell, contadores, checkboxes.
-- [ ] **T6.6** Adicionar passo condicional em `NewCharacter.razor` (`IsCaster(class)`).
-- [ ] **T6.7** Commit `feat(app): initial spell selection for spellcasting classes (F6)`.
+- [x] **T6.1** TDD: `SpellRepository_ForClassAtLevel_filters_by_class` e `..._filters_by_level` (usando catálogo real).
+- [x] **T6.2** Adicionar método `SpellRepository.ForClassAtLevel(className, classSource, spellLevel)`.
+- [x] **T6.3** TDD: helpers em `ClassDataExtensions` — `CantripsKnownAtLevel(level)` e `SpellsKnownAtLevel(level)` (lendo `cantripProgression` e `spellsKnownProgressionFixed`).
+- [x] **T6.4** Estender `CharacterDraft.KnownSpells`.
+- [x] **T6.5** Criar `Components/Wizard/SpellSelectStep.razor` — tabs por nível de spell, contadores, checkboxes.
+- [x] **T6.6** Adicionar passo condicional em `NewCharacter.razor` (`IsCaster(class)`).
+- [x] **T6.7** Commit `feat(app): initial spell selection for spellcasting classes (F6)`.
 
 ## F7 — Initial Equipment
 
