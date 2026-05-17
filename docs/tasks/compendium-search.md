@@ -26,14 +26,14 @@ Dependência forte: F2.5 (`EntityResolver`) e F2.7 (`EntityDetailPanel`). Pode c
 
 ## F1.3 — Search page (UI)
 
-- [ ] **T1.3.1** Criar `src/CharacterWizard.App/Components/Pages/Search.razor` em `/search`. Layout 2 colunas: controles+lista à esquerda, `<EntityDetailPanel>` à direita.
-- [ ] **T1.3.2** Input de query com debounce 200ms (via `Task.Delay` + token).
-- [ ] **T1.3.3** Chips de categoria (multi-toggle).
-- [ ] **T1.3.4** Dropdown de source (multi-select).
-- [ ] **T1.3.5** `<Virtualize>` na lista de resultados.
-- [ ] **T1.3.6** Click em resultado seleciona e mostra no panel.
-- [ ] **T1.3.7** NavLink "Compêndio" no NavMenu.
-- [ ] **T1.3.8** Commit: `feat(app): Search page with filters and detail panel`.
+- [x] **T1.3.1** Criar `src/CharacterWizard.App/Components/Pages/Search.razor` em `/search`. Layout 2 colunas: controles+lista à esquerda, `<EntityDetailPanel>` à direita.
+- [x] **T1.3.2** Input de query com debounce 200ms (via `Task.Delay` + token).
+- [x] **T1.3.3** Chips de categoria (multi-toggle).
+- [x] **T1.3.4** Dropdown de source (multi-select).
+- [x] **T1.3.5** `<Virtualize>` na lista de resultados.
+- [x] **T1.3.6** Click em resultado seleciona e mostra no panel.
+- [x] **T1.3.7** NavLink "Compêndio" no NavMenu.
+- [x] **T1.3.8** Commit: `feat(app): Search page with filters and detail panel`.
 
 ## F1.4 — CompendiumSearchBox e integração no wizard
 

@@ -1,12 +1,52 @@
 @page "/new"
+@using CharacterWizard.App.Components.Shared
 @using CharacterWizard.App.Components.Wizard
 @using CharacterWizard.App.Services
+@using CharacterWizard.Core.Models
 @using CharacterWizard.Core.Persistence
+@using CharacterWizard.Data.Search
 @inject CharacterDraft Draft
 @inject CharacterStore Store
+@inject SearchService Searcher
 @inject NavigationManager Nav
 
-<h1>Novo personagem</h1>
+<div class="d-flex justify-content-between align-items-start">
+    <h1>Novo personagem</h1>
+    <button class="btn btn-outline-primary btn-sm" @onclick="ToggleAssist">
+        🔍 Compêndio
+    </button>
+</div>
+
+@if (_assistOpen)
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex gap-2 align-items-center mb-2">
+                <input class="form-control form-control-sm" placeholder="Buscar entidade..."
+                       value="@_assistQuery" @oninput="OnAssistInput" />
+                <button class="btn btn-sm btn-link" @onclick="ToggleAssist">fechar</button>
+            </div>
+            @if (_assistResults is { } r && r.Items.Count > 0)
+            {
+                <div class="list-group list-group-flush small" style="max-height: 240px; overflow:auto;">
+                    @foreach (var e in r.Items.Take(20))
+                    {
+                        <button class="list-group-item list-group-item-action py-1"
+                                @onclick="() => OpenAssistDetail(e)">
+                            <span class="badge bg-secondary me-2">@e.Category</span>
+                            @e.Name <span class="text-muted">· @e.Source</span>
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<EntityDetailPanel Open="_assistDetailOpen"
+                   Category="@_assistDetailCat"
+                   Ref="_assistDetailRef"
+                   OnClose="() => _assistDetailOpen = false" />
 
 <ul class="nav nav-pills mb-3">
     @for (int i = 0; i < _steps.Length; i++)
@@ -62,5 +102,39 @@
         var c = Draft.ToCharacter();
         Store.Save(c);
         Nav.NavigateTo($"character/{c.Id}");
+    }
+
+    // Compêndio assist (F1.4) — non-destructive search overlay; draft state is
+    // preserved because we don't navigate away.
+
+    private bool _assistOpen;
+    private string _assistQuery = "";
+    private SearchResultPage? _assistResults;
+    private CancellationTokenSource? _assistDebounce;
+    private bool _assistDetailOpen;
+    private string? _assistDetailCat;
+    private EntityRef? _assistDetailRef;
+
+    private void ToggleAssist() => _assistOpen = !_assistOpen;
+
+    private async Task OnAssistInput(ChangeEventArgs e)
+    {
+        _assistQuery = e.Value?.ToString() ?? "";
+        _assistDebounce?.Cancel();
+        _assistDebounce = new();
+        try
+        {
+            await Task.Delay(200, _assistDebounce.Token);
+            _assistResults = Searcher.Search(_assistQuery, pageSize: 50);
+            StateHasChanged();
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private void OpenAssistDetail(SearchEntry e)
+    {
+        _assistDetailCat = e.Category.ToLowerInvariant();
+        _assistDetailRef = new EntityRef(e.Name, e.Source);
+        _assistDetailOpen = true;
     }
 }
