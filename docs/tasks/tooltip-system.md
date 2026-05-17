@@ -61,10 +61,10 @@ Cada task tem: arquivos afetados · testes · critério de done. **TDD: red → 
 
 ## F2.6 — EntryDisplay component (Blazor)
 
-- [ ] **T2.6.1** Criar `src/CharacterWizard.App/Components/Shared/EntryDisplay.razor` com parâmetro `JsonElement? Entries` e callback `EventCallback<EntityRef> OnEntityClicked`. Renderiza `MarkupString` do `EntryRenderer.Render`. Container tem `@onclick` que via JS interop lê `event.target.dataset.cwCat/cwName/cwSource` e dispara callback.
-- [ ] **T2.6.2** Criar `wwwroot/cw-tooltip.css` e `wwwroot/cw-ref.js` (mínimo — só uma função `getRefData(el)` chamada do .NET). Importar em `index.html`.
-- [ ] **T2.6.3** Smoke-test: abrir uma classe via wizard e ver tags renderizadas.
-- [ ] **T2.6.4** Commit: `feat(app): EntryDisplay renders entries with clickable refs`.
+- [x] **T2.6.1** Criar `src/CharacterWizard.App/Components/Shared/EntryDisplay.razor` com parâmetro `JsonElement? Entries` e callback `EventCallback<EntityRef> OnEntityClicked`. Renderiza `MarkupString` do `EntryRenderer.Render`. Container tem `@onclick` que via JS interop lê `event.target.dataset.cwCat/cwName/cwSource` e dispara callback.
+- [x] **T2.6.2** Criar `wwwroot/cw-tooltip.css` e `wwwroot/cw-ref.js` (mínimo — só uma função `getRefData(el)` chamada do .NET). Importar em `index.html`.
+- [x] **T2.6.3** Smoke-test: abrir uma classe via wizard e ver tags renderizadas.
+- [x] **T2.6.4** Commit: `feat(app): EntryDisplay renders entries with clickable refs`.
 
 ## F2.7 — EntityDetailPanel modal
 

@@ -1,0 +1,81 @@
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Data.Resolving
+@inject EntityResolver Resolver
+@inject ImageService Images
+
+@if (Open && _entity is not null)
+{
+    <div class="cw-modal-backdrop" @onclick="CloseAsync"></div>
+    <div class="cw-modal" role="dialog" aria-modal="true">
+        <div class="cw-modal-header">
+            <div>
+                <div class="text-muted small text-uppercase">@_entity.Category</div>
+                <h4 class="mb-0">@_entity.Name</h4>
+                <div class="text-muted small">
+                    @_entity.Source@(_entity.Page is int p ? $" · p. {p}" : "")
+                </div>
+            </div>
+            <button class="cw-modal-close" @onclick="CloseAsync" aria-label="Fechar">✕</button>
+        </div>
+
+        @{ var img = ResolveImage(); }
+        @if (img is not null)
+        {
+            <img src="@img" alt="@_entity.Name" class="img-fluid rounded mb-3"
+                 style="max-height: 220px; object-fit: cover;" />
+        }
+
+        @if (_entity.Entries.HasValue)
+        {
+            <EntryDisplay Entries="_entity.Entries" OnEntityClickedFull="OnNestedRef" />
+        }
+        else
+        {
+            <p class="text-muted">(sem descrição)</p>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public string? Category { get; set; }
+    [Parameter] public EntityRef? Ref { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private ResolvedEntity? _entity;
+
+    protected override void OnParametersSet()
+    {
+        if (Open && Category is not null && Ref is { } r)
+            _entity = Resolver.Resolve(Category, r.Name, r.Source);
+        else
+            _entity = null;
+    }
+
+    private Task CloseAsync() => OnClose.InvokeAsync();
+
+    private void OnNestedRef((string Category, EntityRef Ref) data)
+    {
+        // Click on a ref inside an already-open panel: re-target this same panel
+        // to the new entity (push-over navigation). We intentionally don't keep
+        // a back-stack in MVP — close + reopen is the back path.
+        Category = data.Category;
+        Ref = data.Ref;
+        _entity = Resolver.Resolve(data.Category, data.Ref.Name, data.Ref.Source);
+        StateHasChanged();
+    }
+
+    private string? ResolveImage()
+    {
+        if (_entity is null) return null;
+        return _entity.Category switch
+        {
+            "Race"       => Images.GetRaceImage(_entity.Name, _entity.Source),
+            "Class"      => Images.GetClassImage(_entity.Name, _entity.Source),
+            "Background" => Images.GetBackgroundImage(_entity.Name, _entity.Source),
+            "Item"       => Images.GetItemImage(_entity.Name, _entity.Source),
+            _            => null,
+        };
+    }
+}
