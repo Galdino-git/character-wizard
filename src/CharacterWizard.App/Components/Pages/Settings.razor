@@ -1,0 +1,156 @@
+@page "/settings"
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Settings
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
+@inject AppSettings Settings
+@inject AppSettingsStore SettingsStore
+@inject CatalogProvider Catalog
+@inject BookRepository BookRepo
+@inject RaceRepository RaceRepo
+@inject ClassRepository ClassRepo
+@inject SpellRepository SpellRepo
+@inject ItemRepository ItemRepo
+
+<h1>Configurações</h1>
+<p class="text-muted">Habilite ou desabilite grupos de livros e fontes individuais.</p>
+
+<div class="row mb-3 text-center">
+    <div class="col-6 col-md-3">
+        <div class="border rounded p-2">
+            <div class="small text-muted">Races</div>
+            <div class="fs-5">@RaceRepo.All().Count()</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="border rounded p-2">
+            <div class="small text-muted">Classes</div>
+            <div class="fs-5">@ClassRepo.All().Count()</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="border rounded p-2">
+            <div class="small text-muted">Spells</div>
+            <div class="fs-5">@SpellRepo.All().Count()</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="border rounded p-2">
+            <div class="small text-muted">Items</div>
+            <div class="fs-5">@ItemRepo.All().Count()</div>
+        </div>
+    </div>
+</div>
+
+@foreach (var group in BookRepo.ByGroup().OrderBy(g => GroupOrder(g.Key)))
+{
+    var groupKey = group.Key;
+    var groupEnabled = _enabledGroups.Contains(groupKey);
+
+    <div class="card mb-2">
+        <div class="card-body py-2">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="g-@groupKey"
+                       checked="@groupEnabled"
+                       @onchange="e => ToggleGroup(groupKey, (bool)(e.Value ?? false))" />
+                <label class="form-check-label fw-semibold" for="g-@groupKey">
+                    @GroupLabel(groupKey)
+                    <span class="badge bg-light text-dark ms-2">@group.Count() livros</span>
+                </label>
+            </div>
+
+            <div class="ms-4 mt-1 row">
+                @foreach (var book in group.OrderBy(b => b.Name))
+                {
+                    var src = book.Source;
+                    var srcEnabled = IsSourceEnabled(src, groupEnabled);
+                    <div class="col-md-6">
+                        <div class="form-check form-check-sm">
+                            <input type="checkbox" class="form-check-input" id="s-@src"
+                                   checked="@srcEnabled"
+                                   @onchange="e => ToggleSource(src, groupEnabled, (bool)(e.Value ?? false))" />
+                            <label class="form-check-label small" for="s-@src">
+                                @book.Name <span class="text-muted">· @src</span>
+                            </label>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<div class="mt-3 d-flex gap-2">
+    <button class="btn btn-primary" @onclick="SaveAndApply">Salvar e aplicar</button>
+    @if (_status is not null)
+    {
+        <span class="align-self-center small text-success">@_status</span>
+    }
+</div>
+
+@code {
+    private HashSet<string> _enabledGroups = new(StringComparer.OrdinalIgnoreCase);
+    private HashSet<string> _enabledSourcesOverride = new(StringComparer.OrdinalIgnoreCase);
+    private HashSet<string> _disabledSourcesOverride = new(StringComparer.OrdinalIgnoreCase);
+    private string? _status;
+
+    protected override void OnInitialized()
+    {
+        _enabledGroups = new(Settings.EnabledGroups, StringComparer.OrdinalIgnoreCase);
+        _enabledSourcesOverride = new(Settings.EnabledSources, StringComparer.OrdinalIgnoreCase);
+        _disabledSourcesOverride = new(Settings.DisabledSources, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private void ToggleGroup(string key, bool on)
+    {
+        if (on) _enabledGroups.Add(key); else _enabledGroups.Remove(key);
+    }
+
+    private bool IsSourceEnabled(string source, bool groupEnabled)
+    {
+        if (_disabledSourcesOverride.Contains(source)) return false;
+        if (_enabledSourcesOverride.Contains(source)) return true;
+        return groupEnabled;
+    }
+
+    private void ToggleSource(string source, bool groupEnabled, bool on)
+    {
+        _disabledSourcesOverride.Remove(source);
+        _enabledSourcesOverride.Remove(source);
+        if (on && !groupEnabled)        _enabledSourcesOverride.Add(source);
+        else if (!on && groupEnabled)   _disabledSourcesOverride.Add(source);
+    }
+
+    private void SaveAndApply()
+    {
+        Settings.EnabledGroups   = _enabledGroups.ToList();
+        Settings.EnabledSources  = _enabledSourcesOverride.ToList();
+        Settings.DisabledSources = _disabledSourcesOverride.ToList();
+        SettingsStore.Save(Settings);
+        Catalog.ApplySettings(Settings);
+        _status = "Aplicado.";
+        StateHasChanged();
+    }
+
+    private static int GroupOrder(string key) => key switch
+    {
+        "core" => 0, "supplement" => 1, "supplement-alt" => 2,
+        "setting" => 3, "setting-alt" => 4,
+        "organized-play" => 5, "screen" => 6,
+        "homecraft" => 7, "recipe" => 8, _ => 9,
+    };
+
+    private static string GroupLabel(string key) => key switch
+    {
+        "core" => "Core",
+        "supplement" => "Supplements",
+        "supplement-alt" => "Supplements (alt)",
+        "setting" => "Campaign settings",
+        "setting-alt" => "Settings (alt)",
+        "organized-play" => "Organized play",
+        "screen" => "DM screens",
+        "homecraft" => "Homebrew",
+        "recipe" => "Recipes",
+        _ => key,
+    };
+}
