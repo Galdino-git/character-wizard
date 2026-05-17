@@ -56,27 +56,50 @@ Tasks: [`docs/tasks/compendium-search.md`](tasks/compendium-search.md) · [`docs
 
 ---
 
-## 🔄 M2 — Pós-criação e level-up
+## ✅ M2 — Pós-criação e level-up (entregue 2026-05-17)
 
-### ✅ F3 — Post-creation editing (entregue 2026-05-17)
-
+### F3 — Post-creation editing
 Spec: [`docs/specs/post-creation-editing.md`](specs/post-creation-editing.md) · Tasks: [`docs/tasks/post-creation-editing.md`](tasks/post-creation-editing.md)
 
 - [x] `CharacterView` com tabs (`Ficha` / `Inventário` / `Buffs & Notas`)
-- [x] CRUD de inventário com bônus customizados (CustomName, BonusAttack/Damage/AC, Equipped, Notes)
-- [x] `ItemPickerModal` integrado com `SearchService` (categoria Item)
-- [x] `ItemEditorModal` para edição completa
-- [x] CRUD de `AbilityOverride` (delta + reason) com agregado por ability
-- [x] Editor de notas livres (textarea persistido em `Char.Notes`)
-- [x] Save imediato + backup automático em `_history/` (4 testes novos: 86 verdes total)
+- [x] CRUD de inventário com bônus customizados via `ItemPickerModal` + `ItemEditorModal`
+- [x] CRUD de `AbilityOverride` com agregado por ability
+- [x] Editor de notas livres
+- [x] Save imediato + backup automático em `_history/`
 
-### Pendente
+### F4 — Subrace
+- [x] `SubraceSelectStep` condicional após Race; `Draft.SubraceName` persistido
 
-- [ ] Wizard de level-up de personagem existente (escolha de class para subir, HP, ASI/feat, spells aprendidos)
-- [ ] Seleção de subclass no wizard de criação (quando o nível inicial >= nível de subclass)
-- [ ] Seleção de subraça
-- [ ] Seleção de spells iniciais (cantrips + 1st level)
-- [ ] Seleção de equipamento inicial
+### F5 — Subclass
+- [x] `ClassDataExtensions.SubclassChoiceLevel()` parseia `classFeatures` (8 testes)
+- [x] `SubclassSelectStep` condicional quando nível inicial qualifica
+
+### F6 — Initial spells
+- [x] `ClassSpellListIndex` carregando `gendata-spell-source-lookup.json`
+- [x] `SpellRepository.ForClassAtLevel(class, level)` (3 testes)
+- [x] `SpellSelectStep` com tabs por nível e cantrips/spells quotas
+
+### F7 — Initial equipment
+- [x] `EquipmentStep` mostra `startingEquipment` da classe e background via `EntryRenderer`
+- [x] Reusa `ItemPickerModal` para adicionar itens livres
+
+### F8 — Level-up
+Spec: [`docs/specs/level-up.md`](specs/level-up.md)
+- [x] `LevelUpRules` (`AverageHpPerLevel`, `IsAsiLevel`, `HpGainedAtLevel`) — 6 testes
+- [x] `LevelUpModal` com HP médio/máximo/manual, prompt de subclass quando aplicável, prompt de ASI/feat em níveis 4/8/12/16/19
+- [x] Atualiza `CharacterClassEntry.Levels`, `HitPointRolls`, `SubclassRef` e `Character.ChoicesByLevel`
+
+### Métrica
+**115 testes verdes** (86 → 115: +12 LevelUp/ASI/HP, +8 SubclassLevel, +3 progressions, +3 ForClassAtLevel, +3 itens extras)
+
+---
+
+### Pendente (movido para M3+)
+
+- [ ] Multiclass (subir para classe diferente da atual)
+- [ ] Auto-aplicar features de classe/subclass no level-up (hoje só registra `Levels` e `SubclassRef`)
+- [ ] Pick de feat com modal de pesquisa (hoje aceita name/source manual no level-up)
+- [ ] Spells aprendidos no level-up (hoje passo de criação só; usuário edita via aba após)
 
 ## 🗺️ M3 — UX e polish (a especificar)
 

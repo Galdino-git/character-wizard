@@ -1,5 +1,7 @@
 # Tasks: Wizard Enrichment (F4–F7)
 
+> Status: **completed (MVP)**.
+
 Spec: [`../specs/wizard-enrichment.md`](../specs/wizard-enrichment.md) · Design: [`../design/wizard-enrichment.md`](../design/wizard-enrichment.md)
 
 ## F4 — Subrace
@@ -30,11 +32,11 @@ Spec: [`../specs/wizard-enrichment.md`](../specs/wizard-enrichment.md) · Design
 
 ## F7 — Initial Equipment
 
-- [ ] **T7.1** Estender `CharacterDraft.Inventory` (list de `InventoryItem`).
-- [ ] **T7.2** Criar `Components/Wizard/EquipmentStep.razor` — texto bruto de `class.startingEquipment` e `background.startingEquipment` (renderizado via `EntryRenderer` quando estruturado, ou stringify simples). Botão "+ Adicionar item" usando `ItemPickerModal` existente. Lista de itens já adicionados com remover.
-- [ ] **T7.3** Adicionar passo antes da Revisão em `NewCharacter.razor`.
-- [ ] **T7.4** Commit `feat(app): initial equipment step with picker and starting equipment hints (F7)`.
+- [x] **T7.1** Estender `CharacterDraft.Inventory` (list de `InventoryItem`).
+- [x] **T7.2** Criar `Components/Wizard/EquipmentStep.razor` — texto bruto de `class.startingEquipment` e `background.startingEquipment` (renderizado via `EntryRenderer` quando estruturado, ou stringify simples). Botão "+ Adicionar item" usando `ItemPickerModal` existente. Lista de itens já adicionados com remover.
+- [x] **T7.3** Adicionar passo antes da Revisão em `NewCharacter.razor`.
+- [x] **T7.4** Commit `feat(app): initial equipment step with picker and starting equipment hints (F7)`.
 
 ## Final
 
-- [ ] **T-Final** `dotnet test` verde + smoke build + atualizar ROADMAP marcando F4-F7. Commit `docs: mark F4-F7 complete`.
+- [x] **T-Final** `dotnet test` verde + smoke build + atualizar ROADMAP marcando F4-F7. Commit `docs: mark F4-F7 complete`.
