@@ -38,14 +38,12 @@ else
         }
     </ul>
 
-    @{
-        var available = SpellRepo.ForClassAtLevel(cls.Name, cls.Source, _activeLevel)
-            .OrderBy(s => s.Name)
-            .ToList();
-        var selectedAtLevel = Draft.KnownSpells
-            .Where(r => SpellRepo.Find(r) is { Level: var l } && l == _activeLevel).Count();
-        var quotaAtLevel = _activeLevel == 0 ? cantripQuota : spellQuota;
-    }
+    var available = SpellRepo.ForClassAtLevel(cls.Name, cls.Source, _activeLevel)
+        .OrderBy(s => s.Name)
+        .ToList();
+    var selectedAtLevel = Draft.KnownSpells
+        .Count(r => SpellRepo.Find(r) is { Level: var l } && l == _activeLevel);
+    var quotaAtLevel = _activeLevel == 0 ? cantripQuota : spellQuota;
 
     <div class="small text-muted mb-2">
         Selecionados neste nível: @selectedAtLevel
