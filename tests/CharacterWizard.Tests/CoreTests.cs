@@ -45,6 +45,46 @@ public class ProficiencyBonusTests
         Assert.Equal(expected, ProficiencyBonus.ForLevel(level));
 }
 
+public class LevelUpRulesTests
+{
+    [Theory]
+    [InlineData(1, false)] [InlineData(4, true)] [InlineData(8, true)] [InlineData(12, true)]
+    [InlineData(16, true)] [InlineData(19, true)] [InlineData(20, false)]
+    public void IsAsiLevel_matches_phb(int level, bool expected) =>
+        Assert.Equal(expected, LevelUpRules.IsAsiLevel(level));
+
+    [Theory]
+    [InlineData(6, 4)] [InlineData(8, 5)] [InlineData(10, 6)] [InlineData(12, 7)]
+    public void AverageHpPerLevel_rounds_up(int faces, int expected) =>
+        Assert.Equal(expected, LevelUpRules.AverageHpPerLevel(faces));
+
+    [Fact]
+    public void HpGainedAtLevel1_with_d6_and_con2_is_max_plus_mod()
+    {
+        // First level always max HP from class hit dice + con mod.
+        Assert.Equal(8, LevelUpRules.HpGainedAtLevel(1, 6, 2, HpMode.Average));
+    }
+
+    [Fact]
+    public void HpGainedAtLevel_average_d10_con1()
+    {
+        // (10/2)+1 + 1 = 7
+        Assert.Equal(7, LevelUpRules.HpGainedAtLevel(2, 10, 1, HpMode.Average));
+    }
+
+    [Fact]
+    public void HpGainedAtLevel_maximum_uses_full_die()
+    {
+        Assert.Equal(10, LevelUpRules.HpGainedAtLevel(5, 8, 2, HpMode.Maximum));
+    }
+
+    [Fact]
+    public void HpGainedAtLevel_manual_uses_provided_roll()
+    {
+        Assert.Equal(7, LevelUpRules.HpGainedAtLevel(3, 6, 2, HpMode.Manual, manualRoll: 5));
+    }
+}
+
 public class SpellSlotTableTests
 {
     [Fact]

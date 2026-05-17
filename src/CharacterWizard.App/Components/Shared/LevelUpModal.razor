@@ -1,0 +1,180 @@
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Core.Rules
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
+@inject ClassRepository ClassRepo
+
+@if (Open && Char is not null && Entry is not null && _classData is not null)
+{
+    var newLevel = Entry.Levels + 1;
+    var conMod = AbilityScoreCalculator.Modifier(AbilityScoreCalculator.ComputeFinal(Char).Con);
+    var hpGain = LevelUpRules.HpGainedAtLevel(newLevel,
+        _classData.HitDice?.Faces ?? 8, conMod, _hpMode, _manualRoll);
+
+    <div class="cw-modal-backdrop" @onclick="Cancel"></div>
+    <div class="cw-modal" role="dialog" aria-modal="true">
+        <div class="cw-modal-header">
+            <div>
+                <div class="text-muted small text-uppercase">Subir nível</div>
+                <h5 class="mb-0">@_classData.Name @Entry.Levels &rarr; @newLevel</h5>
+            </div>
+            <button class="cw-modal-close" @onclick="Cancel" aria-label="Fechar">✕</button>
+        </div>
+
+        <h6>HP</h6>
+        <div class="d-flex gap-2 align-items-center mb-2">
+            <select class="form-select form-select-sm" style="max-width: 9rem;" @bind="_hpMode">
+                <option value="@HpMode.Average">Média</option>
+                <option value="@HpMode.Maximum">Máximo</option>
+                <option value="@HpMode.Manual">Manual</option>
+            </select>
+            @if (_hpMode == HpMode.Manual)
+            {
+                <input type="number" class="form-control form-control-sm" style="max-width: 6rem;" @bind="_manualRoll" />
+            }
+            <span class="small text-muted">→ HP ganho: <strong>@hpGain</strong> (incl. CON @(conMod >= 0 ? "+" : "")@conMod)</span>
+        </div>
+
+        @{ var subLvl = _classData.SubclassChoiceLevel() ?? 0; }
+        @if (newLevel == subLvl && Entry.SubclassRef is null)
+        {
+            <h6 class="mt-3">Subclass <small class="text-muted">(escolha obrigatória)</small></h6>
+            var subs = ClassRepo.SubclassesOf(Entry.ClassRef).OrderBy(s => s.Name).ToList();
+            <select class="form-select form-select-sm" @bind="_subclassKey">
+                <option value="">— escolha —</option>
+                @foreach (var s in subs)
+                {
+                    var key = $"{s.Name}|{s.Source}";
+                    <option value="@key">@s.Name <span>· @s.Source</span></option>
+                }
+            </select>
+        }
+
+        @if (LevelUpRules.IsAsiLevel(newLevel))
+        {
+            <h6 class="mt-3">ASI ou Feat</h6>
+            <div class="form-check form-check-inline">
+                <input type="radio" class="form-check-input" id="asi-asi-@_uid" name="asi-@_uid"
+                       value="asi" checked="@(_asiOrFeat == "asi")"
+                       @onchange="PickAsi" />
+                <label class="form-check-label" for="asi-asi-@_uid">ASI</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input type="radio" class="form-check-input" id="asi-feat-@_uid" name="asi-@_uid"
+                       value="feat" checked="@(_asiOrFeat == "feat")"
+                       @onchange="PickFeat" />
+                <label class="form-check-label" for="asi-feat-@_uid">Feat</label>
+            </div>
+
+            @if (_asiOrFeat == "asi")
+            {
+                <div class="row g-2 mt-1">
+                    @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
+                    {
+                        var captured = a;
+                        <div class="col-4 col-md-2">
+                            <label class="form-label small mb-0">@a.ToString().ToUpperInvariant()</label>
+                            <input type="number" class="form-control form-control-sm" min="0" max="2"
+                                   value="@(_asiAlloc.GetValueOrDefault(a))"
+                                   @onchange="e => SetAsi(captured, e.Value)" />
+                        </div>
+                    }
+                </div>
+                <div class="small text-muted mt-1">Total alocado: @_asiAlloc.Values.Sum() (RAW: 2)</div>
+            }
+            else
+            {
+                <div class="small text-muted mt-1">
+                    (Pickeer de feat: use a aba <em>Inventário</em>… err, próxima versão.
+                    Por enquanto digite name/source manual.)
+                </div>
+                <div class="row g-2">
+                    <div class="col-6"><input class="form-control form-control-sm" placeholder="Feat name" @bind="_featName" /></div>
+                    <div class="col-3"><input class="form-control form-control-sm" placeholder="Source" @bind="_featSource" /></div>
+                </div>
+            }
+        }
+
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button class="btn btn-sm btn-outline-secondary" @onclick="Cancel">Cancelar</button>
+            <button class="btn btn-sm btn-primary" @onclick="Apply">Aplicar</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public Character? Char { get; set; }
+    [Parameter] public CharacterClassEntry? Entry { get; set; }
+    [Parameter] public EventCallback OnApplied { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private ClassData? _classData;
+    private HpMode _hpMode = HpMode.Average;
+    private int _manualRoll = 1;
+    private string _subclassKey = "";
+    private string _asiOrFeat = "asi";
+    private Dictionary<Ability, int> _asiAlloc = new();
+    private string _featName = "";
+    private string _featSource = "";
+    private readonly string _uid = Guid.NewGuid().ToString("N");
+
+    protected override void OnParametersSet()
+    {
+        if (!Open || Entry is null) return;
+        _classData = ClassRepo.Find(Entry.ClassRef);
+        _hpMode = HpMode.Average;
+        _subclassKey = "";
+        _asiOrFeat = "asi";
+        _asiAlloc = new();
+        _featName = "";
+        _featSource = "";
+    }
+
+    private void PickAsi() => _asiOrFeat = "asi";
+    private void PickFeat() => _asiOrFeat = "feat";
+
+    private void SetAsi(Ability a, object? raw)
+    {
+        if (raw is null) return;
+        if (int.TryParse(raw.ToString(), out var v))
+            _asiAlloc[a] = Math.Clamp(v, 0, 2);
+    }
+
+    private Task Cancel() => OnCancel.InvokeAsync();
+
+    private async Task Apply()
+    {
+        if (Char is null || Entry is null || _classData is null) return;
+
+        var newLevel = Entry.Levels + 1;
+        var conMod = AbilityScoreCalculator.Modifier(AbilityScoreCalculator.ComputeFinal(Char).Con);
+        var hpGain = LevelUpRules.HpGainedAtLevel(newLevel,
+            _classData.HitDice?.Faces ?? 8, conMod, _hpMode, _manualRoll);
+
+        Entry.HitPointRolls.Add(hpGain);
+        Entry.Levels = newLevel;
+
+        // Subclass pick when crossing the threshold
+        var subLvl = _classData.SubclassChoiceLevel() ?? 0;
+        if (newLevel == subLvl && Entry.SubclassRef is null && _subclassKey.Length > 0)
+        {
+            var parts = _subclassKey.Split('|');
+            if (parts.Length == 2) Entry.SubclassRef = new EntityRef(parts[0], parts[1]);
+        }
+
+        // ASI/feat
+        if (LevelUpRules.IsAsiLevel(newLevel))
+        {
+            var totalLevel = Char.TotalLevel; // already updated since Entry.Levels++
+            var choice = new LevelChoices { AsiOrFeat = _asiOrFeat };
+            if (_asiOrFeat == "asi") choice.AsiAllocation = new(_asiAlloc);
+            else if (!string.IsNullOrWhiteSpace(_featName))
+                choice.FeatRef = new EntityRef(_featName.Trim(),
+                    string.IsNullOrWhiteSpace(_featSource) ? "PHB" : _featSource.Trim());
+            Char.ChoicesByLevel[totalLevel] = choice;
+        }
+
+        await OnApplied.InvokeAsync();
+    }
+}

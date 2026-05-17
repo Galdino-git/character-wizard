@@ -1,5 +1,6 @@
 @page "/character/{Id:guid}"
 @using CharacterWizard.App.Components.Pages.CharacterViewParts
+@using CharacterWizard.App.Components.Shared
 @using CharacterWizard.Core.Models
 @using CharacterWizard.Core.Persistence
 @using CharacterWizard.Core.Rules
@@ -23,10 +24,20 @@ else
             </div>
         </div>
         <div>
+            @if (_character.TotalLevel < 20 && _character.Classes.Count > 0)
+            {
+                <button class="btn btn-sm btn-primary me-2" @onclick="OpenLevelUp">+ Subir nível</button>
+            }
             <button class="btn btn-sm btn-outline-danger" @onclick="Delete">Excluir</button>
             <a class="btn btn-sm btn-outline-secondary" href="">Voltar</a>
         </div>
     </div>
+
+    <LevelUpModal Open="_levelUpOpen"
+                  Char="_character"
+                  Entry="_levelUpEntry"
+                  OnApplied="OnLevelUpApplied"
+                  OnCancel="() => _levelUpOpen = false" />
 
     <ul class="nav nav-tabs mt-3">
         @foreach (var t in _tabs)
@@ -71,5 +82,23 @@ else
         if (_character is null) return;
         Store.Delete(_character.Id);
         Nav.NavigateTo("");
+    }
+
+    // Level-up (F8) — single existing class entry; multiclass is M3.
+    private bool _levelUpOpen;
+    private CharacterClassEntry? _levelUpEntry;
+
+    private void OpenLevelUp()
+    {
+        if (_character is null || _character.Classes.Count == 0) return;
+        _levelUpEntry = _character.Classes[0];
+        _levelUpOpen = true;
+    }
+
+    private async Task OnLevelUpApplied()
+    {
+        _levelUpOpen = false;
+        await Task.Yield();
+        HandleChange();
     }
 }
