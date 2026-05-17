@@ -71,6 +71,48 @@ public class ClassDataExtensionsTests
     }
 }
 
+public class FeaturesAtLevelTests
+{
+    private static ClassData? Find(string name, string source)
+    {
+        var root = CatalogTestHelpers.FindDataRoot();
+        if (root is null) return null;
+        var catalog = new CatalogLoader().Load(root);
+        return catalog.Classes.FirstOrDefault(c =>
+            string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(c.Source, source, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void Fighter_level_5_includes_Extra_Attack()
+    {
+        var f = Find("Fighter", "PHB");
+        if (f is null) return;
+        var names = f.FeaturesAtLevel(5).ToList();
+        Assert.Contains(names, n => n.Equals("Extra Attack", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void Wizard_level_2_includes_Arcane_Tradition()
+    {
+        var w = Find("Wizard", "PHB");
+        if (w is null) return;
+        var names = w.FeaturesAtLevel(2).ToList();
+        Assert.Contains(names, n => n.Equals("Arcane Tradition", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void Wizard_FeaturesUpToLevel_3_contains_level_1_and_2_items()
+    {
+        var w = Find("Wizard", "PHB");
+        if (w is null) return;
+        var items = w.FeaturesUpToLevel(3).ToList();
+        Assert.Contains(items, x => x.Name.Equals("Spellcasting", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(items, x => x.Name.Equals("Arcane Tradition", StringComparison.OrdinalIgnoreCase));
+        Assert.All(items, x => Assert.True(x.Level <= 3));
+    }
+}
+
 public class SpellRepositoryForClassTests
 {
     private static CharacterWizard.Data.Repositories.SpellRepository? Build()

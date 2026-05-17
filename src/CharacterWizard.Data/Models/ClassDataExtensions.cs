@@ -64,4 +64,73 @@ public static class ClassDataExtensions
         for (int i = 0; i < take; i++) sum += prog[i];
         return sum;
     }
+
+    /// <summary>
+    /// Names of class features gained at the given level. Reads `classFeatures[]`
+    /// which mixes string entries ("Name|Class||Level") and object entries
+    /// ({ classFeature: "...", gainSubclassFeature: bool }).
+    /// </summary>
+    public static IEnumerable<string> FeaturesAtLevel(this ClassData cls, int level)
+    {
+        if (cls.ClassFeatures is not { ValueKind: JsonValueKind.Array } arr) yield break;
+        foreach (var item in arr.EnumerateArray())
+        {
+            string? raw = item.ValueKind switch
+            {
+                JsonValueKind.String => item.GetString(),
+                JsonValueKind.Object when item.TryGetProperty("classFeature", out var f) &&
+                                          f.ValueKind == JsonValueKind.String => f.GetString(),
+                _ => null,
+            };
+            if (raw is null) continue;
+            var parts = raw.Split('|');
+            if (parts.Length < 4) continue;
+            if (int.TryParse(parts[3], out var lvl) && lvl == level)
+                yield return parts[0];
+        }
+    }
+
+    /// <summary>
+    /// All class features up to and including the given level, with their level
+    /// of acquisition. Useful for the character sheet "features so far" list.
+    /// </summary>
+    public static IEnumerable<(string Name, int Level)> FeaturesUpToLevel(this ClassData cls, int level)
+    {
+        if (cls.ClassFeatures is not { ValueKind: JsonValueKind.Array } arr) yield break;
+        foreach (var item in arr.EnumerateArray())
+        {
+            string? raw = item.ValueKind switch
+            {
+                JsonValueKind.String => item.GetString(),
+                JsonValueKind.Object when item.TryGetProperty("classFeature", out var f) &&
+                                          f.ValueKind == JsonValueKind.String => f.GetString(),
+                _ => null,
+            };
+            if (raw is null) continue;
+            var parts = raw.Split('|');
+            if (parts.Length < 4) continue;
+            if (int.TryParse(parts[3], out var lvl) && lvl <= level)
+                yield return (parts[0], lvl);
+        }
+    }
+}
+
+public static class SubclassDataExtensions
+{
+    /// <summary>
+    /// Subclass feature names gained at the given level.
+    /// `subclassFeatures` format: "FeatureName|Class||SubclassShortName||Level".
+    /// </summary>
+    public static IEnumerable<string> FeaturesAtLevel(this SubclassData sub, int level)
+    {
+        if (sub.SubclassFeatures is not { ValueKind: JsonValueKind.Array } arr) yield break;
+        foreach (var item in arr.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.String) continue;
+            var parts = item.GetString()!.Split('|');
+            if (parts.Length < 6) continue;
+            if (int.TryParse(parts[5], out var lvl) && lvl == level)
+                yield return parts[0];
+        }
+    }
 }

@@ -1,5 +1,8 @@
 @using CharacterWizard.Core.Models
 @using CharacterWizard.Core.Rules
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
+@inject ClassRepository ClassRepo
 
 @{
     var final = AbilityScoreCalculator.ComputeFinal(Char);
@@ -54,6 +57,57 @@
             </li>
         }
     </ul>
+}
+
+@foreach (var entry in Char.Classes)
+{
+    var cls = ClassRepo.Find(entry.ClassRef);
+    if (cls is null) continue;
+    var features = cls.FeaturesUpToLevel(entry.Levels).ToList();
+    var subFeatures = entry.SubclassRef is { } sr
+        ? ClassRepo.SubclassesOf(entry.ClassRef)
+            .FirstOrDefault(s => s.Name == sr.Name && s.Source == sr.Source)
+            ?.FeaturesAtLevel(0)
+            .ToList() // placeholder; we list per-level below instead
+        : null;
+
+    <h6 class="mt-4">Features — @cls.Name @entry.Levels</h6>
+    <ul class="small mb-0">
+        @foreach (var f in features.OrderBy(x => x.Level).ThenBy(x => x.Name))
+        {
+            <li>nv @f.Level · @f.Name</li>
+        }
+    </ul>
+
+    @if (entry.SubclassRef is { } subRef)
+    {
+        var sub = ClassRepo.SubclassesOf(entry.ClassRef)
+            .FirstOrDefault(s => s.Name == subRef.Name && s.Source == subRef.Source);
+        if (sub is not null)
+        {
+            <div class="small mt-1">
+                <em>@subRef.Name:</em>
+                @{
+                    var subAcc = new List<(string Name, int Level)>();
+                    for (int l = 1; l <= entry.Levels; l++)
+                        subAcc.AddRange(sub.FeaturesAtLevel(l).Select(n => (n, l)));
+                }
+                @if (subAcc.Count == 0)
+                {
+                    <span class="text-muted"> (nenhuma ainda)</span>
+                }
+                else
+                {
+                    <ul class="mb-0">
+                        @foreach (var f in subAcc)
+                        {
+                            <li>nv @f.Level · @f.Name</li>
+                        }
+                    </ul>
+                }
+            </div>
+        }
+    }
 }
 
 @if (!string.IsNullOrWhiteSpace(Char.Notes))
