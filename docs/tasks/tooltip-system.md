@@ -39,7 +39,7 @@ Cada task tem: arquivos afetados · testes · critério de done. **TDD: red → 
 
 ## F2.4 — EntryRenderer: estruturas (entries/list/inset/table)
 
-- [ ] **T2.4.1** Testes vermelhos:
+- [x] **T2.4.1** Testes vermelhos:
     - `Render_processes_string_entry`
     - `Render_processes_entries_object_with_name_header`
     - `Render_processes_list_with_items`
@@ -47,8 +47,8 @@ Cada task tem: arquivos afetados · testes · critério de done. **TDD: red → 
     - `Render_processes_inset_with_border`
     - `Render_processes_table_basic`
     - `Render_returns_empty_for_unknown_type`
-- [ ] **T2.4.2** Implementar `EntryRenderer.Render(JsonElement)` que despacha por `type` e recursivamente renderiza filhos. Tabelas básicas: rows + cells.
-- [ ] **T2.4.3** Commit: `feat(data): EntryRenderer handles structured entries`.
+- [x] **T2.4.2** Implementar `EntryRenderer.Render(JsonElement)` que despacha por `type` e recursivamente renderiza filhos. Tabelas básicas: rows + cells.
+- [x] **T2.4.3** Commit: `feat(data): EntryRenderer handles structured entries`.
 
 ## F2.5 — EntityResolver
 
