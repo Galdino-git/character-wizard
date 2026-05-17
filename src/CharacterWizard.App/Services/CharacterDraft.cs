@@ -19,6 +19,13 @@ public sealed class CharacterDraft
 
     public int InitialLevel { get; set; } = 1;
 
+    /// <summary>
+    /// Secondary classes for multiclass. The primary class lives in ClassRef +
+    /// SubclassRef + InitialLevel; each entry here is a full extra class entry
+    /// that will be appended to Character.Classes.
+    /// </summary>
+    public List<CharacterClassEntry> AdditionalClasses { get; set; } = new();
+
     public List<EntityRef> KnownSpells { get; set; } = new();
     public List<InventoryItem> Inventory { get; set; } = new();
 
@@ -32,18 +39,17 @@ public sealed class CharacterDraft
         BackgroundRef = null;
         BaseAbilityScores = new() { Str = 8, Dex = 13, Con = 14, Int = 15, Wis = 12, Cha = 10 };
         InitialLevel = 1;
+        AdditionalClasses = new();
         KnownSpells = new();
         Inventory = new();
     }
 
     public Character ToCharacter()
     {
-        var classes = ClassRef is { } cr
-            ? new List<CharacterClassEntry>
-            {
-                new() { ClassRef = cr, Levels = InitialLevel, SubclassRef = SubclassRef },
-            }
-            : new();
+        var classes = new List<CharacterClassEntry>();
+        if (ClassRef is { } cr)
+            classes.Add(new() { ClassRef = cr, Levels = InitialLevel, SubclassRef = SubclassRef });
+        classes.AddRange(AdditionalClasses);
 
         return new Character
         {

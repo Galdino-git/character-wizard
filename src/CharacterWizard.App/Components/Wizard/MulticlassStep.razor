@@ -1,0 +1,140 @@
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
+@inject CharacterDraft Draft
+@inject ClassRepository ClassRepo
+
+<h3>Classes adicionais (multiclass)</h3>
+<p class="text-muted small">
+    Opcional. Adicione classes secundárias se quer começar multiclass.
+    Pré-requisitos RAW (STR/DEX 13, CHA 13 etc.) <strong>não</strong> são verificados.
+</p>
+
+@if (Draft.AdditionalClasses.Count == 0)
+{
+    <div class="text-muted small mb-2">Nenhuma classe secundária. Personagem é single-class.</div>
+}
+else
+{
+    <table class="table table-sm align-middle w-auto">
+        <thead><tr>
+            <th>Classe</th>
+            <th class="text-end">Níveis</th>
+            <th>Subclass</th>
+            <th></th>
+        </tr></thead>
+        <tbody>
+        @foreach (var entry in Draft.AdditionalClasses.ToList())
+        {
+            var captured = entry;
+            var cls = ClassRepo.Find(entry.ClassRef);
+            var subLvl = cls?.SubclassChoiceLevel() ?? 0;
+            <tr>
+                <td>@entry.ClassRef.Name <span class="text-muted small">· @entry.ClassRef.Source</span></td>
+                <td class="text-end" style="width:8rem;">
+                    <input type="number" class="form-control form-control-sm" min="1" max="20"
+                           value="@entry.Levels"
+                           @onchange="e => SetLevels(captured, e.Value)" />
+                </td>
+                <td>
+                    @if (subLvl > 0 && entry.Levels >= subLvl)
+                    {
+                        var subs = ClassRepo.SubclassesOf(entry.ClassRef).OrderBy(s => s.Name).ToList();
+                        var curKey = entry.SubclassRef is { } sr ? $"{sr.Name}|{sr.Source}" : "";
+                        <select class="form-select form-select-sm" value="@curKey"
+                                @onchange="e => SetSubclass(captured, e)">
+                            <option value="">— escolha —</option>
+                            @foreach (var s in subs)
+                            {
+                                var key = $"{s.Name}|{s.Source}";
+                                <option value="@key">@s.Name <span>· @s.Source</span></option>
+                            }
+                        </select>
+                    }
+                    else if (subLvl > 0)
+                    {
+                        <span class="text-muted small">disponível em nv @subLvl</span>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-link text-danger p-0"
+                            @onclick="() => Draft.AdditionalClasses.Remove(captured)">remover</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<div class="card mt-2">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label small mb-0">Adicionar classe</label>
+                <select class="form-select form-select-sm" value="@_newPick" @onchange="OnNewPick">
+                    <option value="">— escolha —</option>
+                    @foreach (var c in ClassRepo.All()
+                        .Where(c => !IsAlreadyChosen(c.Name, c.Source))
+                        .OrderBy(c => c.Name))
+                    {
+                        <option value="@($"{c.Name}|{c.Source}")">@c.Name <span>· @c.Source</span></option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0">Níveis</label>
+                <input type="number" class="form-control form-control-sm" min="1" max="20" @bind="_newLevels" />
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-sm btn-primary w-100"
+                        disabled="@string.IsNullOrEmpty(_newPick)"
+                        @onclick="AddClass">+ Adicionar</button>
+            </div>
+        </div>
+        <div class="small text-muted mt-2">
+            Total de níveis somando primária + adicionais:
+            <strong>@(Draft.InitialLevel + Draft.AdditionalClasses.Sum(c => c.Levels))</strong>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _newPick = "";
+    private int _newLevels = 1;
+
+    private bool IsAlreadyChosen(string name, string source) =>
+        (Draft.ClassRef is { } pc && pc.Name == name && pc.Source == source) ||
+        Draft.AdditionalClasses.Any(e => e.ClassRef.Name == name && e.ClassRef.Source == source);
+
+    private void OnNewPick(ChangeEventArgs e) => _newPick = e.Value?.ToString() ?? "";
+
+    private void AddClass()
+    {
+        var parts = _newPick.Split('|');
+        if (parts.Length != 2) return;
+        Draft.AdditionalClasses.Add(new CharacterClassEntry
+        {
+            ClassRef = new EntityRef(parts[0], parts[1]),
+            Levels = Math.Clamp(_newLevels, 1, 20),
+        });
+        _newPick = "";
+        _newLevels = 1;
+    }
+
+    private void SetLevels(CharacterClassEntry entry, object? raw)
+    {
+        if (raw is null) return;
+        if (int.TryParse(raw.ToString(), out var v))
+            entry.Levels = Math.Clamp(v, 1, 20);
+    }
+
+    private void SetSubclass(CharacterClassEntry entry, ChangeEventArgs e)
+    {
+        var key = e.Value?.ToString() ?? "";
+        if (string.IsNullOrEmpty(key)) { entry.SubclassRef = null; return; }
+        var parts = key.Split('|');
+        if (parts.Length != 2) return;
+        entry.SubclassRef = new EntityRef(parts[0], parts[1]);
+    }
+}

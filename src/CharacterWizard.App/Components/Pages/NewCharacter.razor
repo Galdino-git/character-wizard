@@ -81,6 +81,7 @@
         case "Subraça":      <SubraceSelectStep /> break;
         case "Classe":       <ClassSelectStep />   break;
         case "Subclass":     <SubclassSelectStep /> break;
+        case "Multiclass":   <MulticlassStep />    break;
         case "Background":   <BackgroundSelectStep /> break;
         case "Atributos":    <AbilitiesStep />     break;
         case "Spells":       <SpellSelectStep />   break;
@@ -127,6 +128,11 @@
         {
             s.Add("Subclass");
         }
+
+        // Multiclass step is always offered (defaults empty); shows after the
+        // primary class so users see it as an explicit "optional addition".
+        if (Draft.ClassRef is not null)
+            s.Add("Multiclass");
 
         s.Add("Background");
         s.Add("Atributos");
