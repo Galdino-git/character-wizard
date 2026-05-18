@@ -45,6 +45,55 @@ public class ProficiencyBonusTests
         Assert.Equal(expected, ProficiencyBonus.ForLevel(level));
 }
 
+public class ProficiencyResolverTests
+{
+    [Fact]
+    public void Wizard_proficient_in_int_and_wis()
+    {
+        var c = new Character
+        {
+            BaseAbilityScores = new() { Str = 10, Dex = 12, Con = 14, Int = 16, Wis = 12, Cha = 10 },
+            Classes = { new() { ClassRef = new("Wizard", "PHB"), Levels = 5 } },
+        };
+        ProficiencyResolver.SaveProficienciesLookup lookup =
+            (EntityRef r) => new[] { "int", "wis" };
+
+        var saves = ProficiencyResolver.ComputeSaves(c, lookup);
+
+        Assert.True(saves.Int.Proficient);
+        Assert.True(saves.Wis.Proficient);
+        Assert.False(saves.Str.Proficient);
+        // Lvl 5 → PB +3, INT mod +3 → save +6
+        Assert.Equal(6, saves.Int.Modifier);
+        Assert.Equal(0, saves.Str.Modifier);  // STR mod 0, no PB
+    }
+
+    [Fact]
+    public void Multiclass_uses_first_class_saves()
+    {
+        // Fighter is the first class — gets STR + CON saves regardless of secondary Wizard.
+        var c = new Character
+        {
+            BaseAbilityScores = new() { Str = 14, Con = 14, Int = 16 },
+            Classes =
+            {
+                new() { ClassRef = new("Fighter", "PHB"), Levels = 3 },
+                new() { ClassRef = new("Wizard",  "PHB"), Levels = 2 },
+            },
+        };
+        ProficiencyResolver.SaveProficienciesLookup lookup =
+            (EntityRef r) => r.Name == "Fighter"
+                ? new[] { "str", "con" }
+                : new[] { "int", "wis" };
+
+        var saves = ProficiencyResolver.ComputeSaves(c, lookup);
+
+        Assert.True(saves.Str.Proficient);
+        Assert.True(saves.Con.Proficient);
+        Assert.False(saves.Int.Proficient);  // Wizard saves don't apply
+    }
+}
+
 public class HitPointCalculatorTests
 {
     private static int? D10(EntityRef r) => r.Name == "Fighter" ? 10 : (int?)null;

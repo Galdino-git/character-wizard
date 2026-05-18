@@ -8,6 +8,7 @@
     var final = AbilityScoreCalculator.ComputeFinal(Char);
     var pb = ProficiencyBonus.ForLevel(Char.TotalLevel);
     var maxHp = HitPointCalculator.ComputeMaxHp(Char, r => ClassRepo.Find(r)?.HitDice?.Faces);
+    var saves = ProficiencyResolver.ComputeSaves(Char, r => ClassRepo.Find(r)?.SavingThrowProficiencies);
 }
 
 <div class="row g-2 mb-3">
@@ -46,6 +47,24 @@
             <td>@score <small class="text-muted">(@(mod >= 0 ? "+" : "")@mod)</small></td>
         }
         <td>+@pb</td>
+    </tr></tbody>
+</table>
+
+<h5 class="mt-3">Saving throws</h5>
+<table class="table table-sm w-auto">
+    <thead><tr>
+        @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
+        { <th>@a.ToString().ToUpperInvariant()</th> }
+    </tr></thead>
+    <tbody><tr>
+        @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
+        {
+            var s = saves.Get(a);
+            <td>
+                @(s.Modifier >= 0 ? "+" : "")@s.Modifier
+                @if (s.Proficient) { <span class="text-primary" title="Proficient">★</span> }
+            </td>
+        }
     </tr></tbody>
 </table>
 
