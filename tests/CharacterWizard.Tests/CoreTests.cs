@@ -45,6 +45,64 @@ public class ProficiencyBonusTests
         Assert.Equal(expected, ProficiencyBonus.ForLevel(level));
 }
 
+public class PointBuyTests
+{
+    [Theory]
+    [InlineData(8, 0)] [InlineData(9, 1)] [InlineData(10, 2)] [InlineData(11, 3)]
+    [InlineData(12, 4)] [InlineData(13, 5)] [InlineData(14, 7)] [InlineData(15, 9)]
+    public void Cost_matches_phb(int score, int expected) =>
+        Assert.Equal(expected, PointBuy.Cost(score));
+
+    [Theory]
+    [InlineData(7)] [InlineData(16)] [InlineData(0)]
+    public void Cost_out_of_range_returns_null(int score) =>
+        Assert.Null(PointBuy.Cost(score));
+
+    [Fact]
+    public void Total_for_15_15_15_8_8_8_is_27()
+    {
+        var scores = new AbilityScores { Str = 15, Dex = 15, Con = 15, Int = 8, Wis = 8, Cha = 8 };
+        Assert.Equal(27, PointBuy.TotalCost(scores));
+    }
+
+    [Fact]
+    public void Total_for_standard_array_is_27()
+    {
+        var scores = new AbilityScores { Str = 15, Dex = 14, Con = 13, Int = 12, Wis = 10, Cha = 8 };
+        Assert.Equal(27, PointBuy.TotalCost(scores));
+    }
+}
+
+public class AbilityRollerTests
+{
+    [Fact]
+    public void Roll4d6DropLowest_in_range_3_to_18()
+    {
+        var rng = new Random(42);
+        for (int i = 0; i < 1000; i++)
+        {
+            var v = AbilityRoller.Roll4d6DropLowest(rng);
+            Assert.InRange(v, 3, 18);
+        }
+    }
+
+    [Fact]
+    public void RollSix_returns_six_values()
+    {
+        var values = AbilityRoller.RollSix(new Random(0));
+        Assert.Equal(6, values.Length);
+        Assert.All(values, v => Assert.InRange(v, 3, 18));
+    }
+
+    [Fact]
+    public void Roll_is_deterministic_with_same_seed()
+    {
+        var a = AbilityRoller.RollSix(new Random(123));
+        var b = AbilityRoller.RollSix(new Random(123));
+        Assert.Equal(a, b);
+    }
+}
+
 public class ProficiencyResolverTests
 {
     [Fact]

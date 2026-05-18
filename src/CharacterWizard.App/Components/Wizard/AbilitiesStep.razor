@@ -4,36 +4,123 @@
 @inject CharacterDraft Draft
 
 <h3>Atributos</h3>
-<p class="text-muted">
-    Defina os atributos base. Bônus de raça, ASIs e overrides serão aplicados depois.
-</p>
+
+<ul class="nav nav-pills mb-3">
+    @foreach (var m in new[] { "Manual", "Standard array", "Point-buy", "Roll" })
+    {
+        var mode = m;
+        <li class="nav-item">
+            <button type="button"
+                    class="nav-link @(mode == _mode ? "active" : "")"
+                    @onclick="() => SwitchMode(mode)">@mode</button>
+        </li>
+    }
+</ul>
+
+@if (_mode == "Point-buy")
+{
+    var spent = PointBuy.TotalCost(Draft.BaseAbilityScores) ?? -1;
+    var remaining = PointBuy.Budget - spent;
+    <div class="alert @(remaining < 0 ? "alert-danger" : remaining == 0 ? "alert-success" : "alert-info") small py-1">
+        Pontos: @spent / @PointBuy.Budget &nbsp;·&nbsp;
+        Restante: @remaining
+        @if (spent < 0)
+        {
+            <span> &nbsp;·&nbsp; <em>(scores devem estar entre 8 e 15)</em></span>
+        }
+    </div>
+}
+
+@if (_mode == "Roll")
+{
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <button class="btn btn-sm btn-outline-primary mb-2" @onclick="RollDice">
+                🎲 Rolar 4d6 drop lowest × 6
+            </button>
+            @if (_rolledValues is not null)
+            {
+                <div class="small mb-2">Valores rolados: @string.Join(", ", _rolledValues)</div>
+                <div class="small text-muted">Atribua cada valor a uma ability via dropdown abaixo.</div>
+            }
+        </div>
+    </div>
+}
 
 <div class="row g-3" style="max-width: 36rem;">
     @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
     {
+        var current = Draft.BaseAbilityScores.Get(a);
+        var ability = a;
+
         <div class="col-6 col-md-4">
             <label class="form-label">@a.ToString().ToUpperInvariant()</label>
-            <input type="number" class="form-control" min="1" max="30"
-                   value="@Draft.BaseAbilityScores.Get(a)"
-                   @onchange="e => Set(a, e.Value)" />
-            <div class="form-text">Mod: @Fmt(AbilityScoreCalculator.Modifier(Draft.BaseAbilityScores.Get(a)))</div>
+
+            @if (_mode == "Roll" && _rolledValues is not null)
+            {
+                <select class="form-select" value="@current"
+                        @onchange="e => SetScoreFromRolled(ability, e.Value?.ToString())">
+                    <option value="0">— escolha —</option>
+                    @foreach (var v in _rolledValues)
+                    {
+                        <option value="@v">@v</option>
+                    }
+                </select>
+            }
+            else
+            {
+                var min = _mode == "Point-buy" ? PointBuy.MinScore : 1;
+                var max = _mode == "Point-buy" ? PointBuy.MaxScore : 30;
+                <input type="number" class="form-control" min="@min" max="@max"
+                       value="@current"
+                       @onchange="e => SetScore(ability, e.Value)" />
+            }
+            <div class="form-text">Mod: @Fmt(AbilityScoreCalculator.Modifier(current))</div>
         </div>
     }
 </div>
 
-<div class="mt-3 d-flex gap-2">
-    <button class="btn btn-outline-secondary btn-sm"
-            @onclick="() => Apply(15,14,13,12,10,8)">Standard array</button>
-    <button class="btn btn-outline-secondary btn-sm"
-            @onclick="() => Apply(10,10,10,10,10,10)">Tudo 10</button>
-</div>
+@if (_mode == "Manual" || _mode == "Standard array")
+{
+    <div class="mt-3 d-flex gap-2 flex-wrap">
+        <button class="btn btn-outline-secondary btn-sm"
+                @onclick="() => Apply(15,14,13,12,10,8)">Aplicar standard array</button>
+        <button class="btn btn-outline-secondary btn-sm"
+                @onclick="() => Apply(10,10,10,10,10,10)">Tudo 10</button>
+    </div>
+}
 
 @code {
-    private void Set(Ability a, object? raw)
+    private string _mode = "Manual";
+    private int[]? _rolledValues;
+
+    private void SwitchMode(string mode)
+    {
+        _mode = mode;
+        if (mode == "Standard array") Apply(15, 14, 13, 12, 10, 8);
+        else if (mode == "Point-buy")  Apply(8, 8, 8, 8, 8, 8);
+        else if (mode == "Roll")       _rolledValues = null;
+    }
+
+    private void RollDice()
+    {
+        _rolledValues = AbilityRoller.RollSix(new Random());
+        Apply(_rolledValues[0], _rolledValues[1], _rolledValues[2],
+              _rolledValues[3], _rolledValues[4], _rolledValues[5]);
+    }
+
+    private void SetScoreFromRolled(Ability a, string? raw)
+    {
+        if (string.IsNullOrEmpty(raw) || !int.TryParse(raw, out var v)) return;
+        Draft.BaseAbilityScores = Draft.BaseAbilityScores.With(a, v);
+    }
+
+    private void SetScore(Ability a, object? raw)
     {
         if (raw is null) return;
-        if (int.TryParse(raw.ToString(), out var v))
-            Draft.BaseAbilityScores = Draft.BaseAbilityScores.With(a, v);
+        if (!int.TryParse(raw.ToString(), out var v)) return;
+        if (_mode == "Point-buy") v = Math.Clamp(v, PointBuy.MinScore, PointBuy.MaxScore);
+        Draft.BaseAbilityScores = Draft.BaseAbilityScores.With(a, v);
     }
 
     private void Apply(int s, int d, int c, int i, int w, int ch)
