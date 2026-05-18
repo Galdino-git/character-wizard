@@ -27,10 +27,10 @@ public static class MauiProgram
         builder.Services.AddSingleton<AppSettingsStore>(_ => new AppSettingsStore());
         builder.Services.AddSingleton<AppSettings>(sp => sp.GetRequiredService<AppSettingsStore>().Load());
 
-        // Data catalog
+        // Data catalog — repos take ICatalogSource which the provider implements,
+        // so Reload() actually propagates to all consumers.
         builder.Services.AddSingleton<CatalogProvider>();
-        builder.Services.AddSingleton(sp => sp.GetRequiredService<CatalogProvider>().Catalog);
-        builder.Services.AddSingleton(sp => sp.GetRequiredService<CatalogProvider>().Filter);
+        builder.Services.AddSingleton<ICatalogSource>(sp => sp.GetRequiredService<CatalogProvider>());
 
         // Repositories
         builder.Services.AddSingleton<BookRepository>();

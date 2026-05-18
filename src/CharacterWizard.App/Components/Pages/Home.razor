@@ -4,10 +4,20 @@
 @using CharacterWizard.Core.Models
 @using CharacterWizard.Core.Persistence
 @using CharacterWizard.Core.Rules
+@using CharacterWizard.Core.Settings
 @inject CharacterStore Store
+@inject AppSettings Cfg
 @inject NavigationManager Nav
 
 <h1>Personagens</h1>
+
+@if (Cfg.LastOpenedCharacterId is Guid lastId &&
+     _characters.FirstOrDefault(c => c.Id == lastId) is { } last)
+{
+    <a class="btn btn-sm btn-outline-primary mb-2" href="character/@last.Id">
+        ↻ Reabrir <strong>@last.Name</strong>
+    </a>
+}
 
 @if (_characters.Count == 0)
 {

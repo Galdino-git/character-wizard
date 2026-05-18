@@ -5,7 +5,10 @@
 @using CharacterWizard.Core.Models
 @using CharacterWizard.Core.Persistence
 @using CharacterWizard.Core.Rules
+@using CharacterWizard.Core.Settings
 @inject CharacterStore Store
+@inject AppSettings Cfg
+@inject AppSettingsStore CfgStore
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
@@ -71,7 +74,15 @@ else
     private readonly string[] _tabs = { "Ficha", "Inventário", "Buffs & Notas" };
     private string _activeTab = "Ficha";
 
-    protected override void OnParametersSet() => _character = Store.Load(Id);
+    protected override void OnParametersSet()
+    {
+        _character = Store.Load(Id);
+        if (_character is not null && Cfg.LastOpenedCharacterId != _character.Id)
+        {
+            Cfg.LastOpenedCharacterId = _character.Id;
+            CfgStore.Save(Cfg);
+        }
+    }
 
     private void HandleChange()
     {
