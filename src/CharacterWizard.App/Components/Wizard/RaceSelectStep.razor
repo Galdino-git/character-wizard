@@ -17,7 +17,7 @@
                    @bind="_filter" @bind:event="oninput" />
         </div>
 
-        <div class="row g-3">
+        <div class="row g-3 cw-grid">
             @foreach (var r in Filtered())
             {
                 var selected = Draft.RaceRef is { Name: var n, Source: var s }
@@ -25,8 +25,9 @@
                 var img = Images.GetRaceImage(r.Name, r.Source);
 
                 <div class="col-md-6 col-xl-4">
-                    <div class="card h-100 @(selected ? "border-primary" : "")"
-                         style="cursor:pointer" @onclick="() => Pick(r)">
+                    <div class="card h-100 cw-pick @(selected ? "cw-pick--selected border-primary" : "")"
+                         @onclick="() => Pick(r)">
+                        @if (selected) { <span class="cw-burst"></span> }
                         @if (img is not null)
                         {
                             <img src="@img" class="card-img-top"

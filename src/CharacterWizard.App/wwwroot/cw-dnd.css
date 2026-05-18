@@ -1,0 +1,495 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   CharacterWizard — D&D theme
+   Aditivo: roda lado a lado com bootstrap e com cw-theme.css (dark mode).
+   Não muda layout — só pinta, anima e dá clima.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+    --cw-gold:        #c9a24c;
+    --cw-gold-soft:   #e0c478;
+    --cw-gold-deep:   #8c6a2a;
+    --cw-burgundy:    #6e1d1d;
+    --cw-ink:         #2a2118;
+    --cw-parchment:   #f4ead2;
+    --cw-parchment-2: #ece0bd;
+    --cw-rune:        rgba(201, 162, 76, 0.28);
+}
+
+/* ───── Body — papel envelhecido (light) ──────────────────────────────────── */
+
+body {
+    background-color: var(--cw-parchment);
+    /* subtle paper noise + diagonal grain, via two layered gradients */
+    background-image:
+        radial-gradient(ellipse at 20% 10%, rgba(140, 106, 42, 0.07), transparent 60%),
+        radial-gradient(ellipse at 80% 90%, rgba(110, 29, 29, 0.06), transparent 65%),
+        repeating-linear-gradient(135deg,
+            rgba(140, 106, 42, 0.025) 0px,
+            rgba(140, 106, 42, 0.025) 2px,
+            transparent 2px,
+            transparent 6px);
+    color: var(--cw-ink);
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+}
+
+/* ───── Headings — Cinzel-style fallback (system serif tracking) ──────────── */
+
+h1, h2, h3, h4, h5,
+.navbar-brand {
+    font-family: 'Trajan Pro', 'Cinzel', 'Optima', 'Palatino Linotype', Georgia, serif;
+    letter-spacing: 0.04em;
+    color: var(--cw-burgundy);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+h1 {
+    font-weight: 600;
+    border-bottom: 1px solid var(--cw-gold);
+    padding-bottom: 0.4rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+h1::after {
+    content: "";
+    position: absolute;
+    left: 0; bottom: -3px;
+    width: 60px; height: 1px;
+    background: var(--cw-gold);
+    box-shadow: 0 2px 0 var(--cw-gold);
+}
+
+h3 { font-weight: 600; }
+
+/* ───── Top bar / navbar ──────────────────────────────────────────────────── */
+
+.navbar-dark, .top-row.navbar-dark {
+    background: linear-gradient(180deg, #1a0e0a, #2a1810) !important;
+    border-bottom: 2px solid var(--cw-gold) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.navbar-brand {
+    color: var(--cw-gold-soft) !important;
+    font-size: 1.25rem;
+}
+
+/* ───── Sidebar ───────────────────────────────────────────────────────────── */
+
+.sidebar {
+    background: linear-gradient(180deg, #1a0e0a, #0f0805) !important;
+    border-right: 1px solid var(--cw-gold-deep);
+}
+.sidebar .nav-link {
+    color: #d7c89c !important;
+    transition: color .15s, background .15s, padding-left .15s;
+}
+.sidebar .nav-link:hover {
+    color: var(--cw-gold-soft) !important;
+    background: rgba(201, 162, 76, 0.08) !important;
+    padding-left: 1.25rem !important;
+}
+.sidebar .nav-link.active {
+    color: #fff !important;
+    background: linear-gradient(90deg, rgba(201, 162, 76, 0.22), transparent) !important;
+    border-left: 3px solid var(--cw-gold);
+}
+
+/* ───── Cards / panels ────────────────────────────────────────────────────── */
+
+.card, .border.rounded {
+    background-color: var(--cw-parchment-2);
+    border: 1px solid var(--cw-gold-deep) !important;
+    box-shadow: 0 1px 3px rgba(60, 40, 20, 0.18);
+    border-radius: 4px;
+    position: relative;
+}
+
+/* corner flourishes on cards — tiny tick marks at 4 corners */
+.card::before,
+.card::after {
+    content: "";
+    position: absolute;
+    width: 10px; height: 10px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+.card::before {
+    top: -1px; left: -1px;
+    border-top: 2px solid var(--cw-gold);
+    border-left: 2px solid var(--cw-gold);
+}
+.card::after {
+    bottom: -1px; right: -1px;
+    border-bottom: 2px solid var(--cw-gold);
+    border-right: 2px solid var(--cw-gold);
+}
+
+.card-title { color: var(--cw-burgundy); font-family: 'Trajan Pro', 'Cinzel', Georgia, serif; }
+
+/* ───── Pickable cards (race/class/background/subrace/subclass) ───────────── */
+
+.cw-pick {
+    transition: transform .22s cubic-bezier(.2,.7,.3,1.4),
+                box-shadow .22s ease,
+                border-color .22s ease,
+                filter .22s ease;
+    cursor: pointer;
+    will-change: transform;
+}
+.cw-pick:hover {
+    transform: translateY(-4px) scale(1.015);
+    box-shadow:
+        0 8px 22px rgba(60, 40, 20, 0.28),
+        0 0 0 1px var(--cw-gold-soft),
+        0 0 18px rgba(201, 162, 76, 0.45);
+    border-color: var(--cw-gold) !important;
+    filter: saturate(1.1);
+    z-index: 2;
+}
+.cw-pick img.card-img-top {
+    transition: filter .25s ease, transform .35s ease;
+    filter: saturate(0.85) brightness(0.95);
+}
+.cw-pick:hover img.card-img-top {
+    filter: saturate(1.15) brightness(1.02);
+    transform: scale(1.03);
+}
+
+/* Selected state — pulsing gold ring + gacha burst */
+.cw-pick--selected {
+    border-color: var(--cw-gold) !important;
+    box-shadow:
+        0 0 0 2px var(--cw-gold),
+        0 0 22px rgba(201, 162, 76, 0.7),
+        0 6px 20px rgba(60, 40, 20, 0.3) !important;
+    animation: cw-selected-pulse 2.4s ease-in-out infinite;
+}
+.cw-pick--selected::before,
+.cw-pick--selected::after {
+    opacity: 1;
+    width: 14px; height: 14px;
+    border-width: 3px;
+}
+
+@keyframes cw-selected-pulse {
+    0%, 100% {
+        box-shadow:
+            0 0 0 2px var(--cw-gold),
+            0 0 18px rgba(201, 162, 76, 0.55),
+            0 6px 20px rgba(60, 40, 20, 0.3);
+    }
+    50% {
+        box-shadow:
+            0 0 0 2px var(--cw-gold-soft),
+            0 0 32px rgba(224, 196, 120, 0.95),
+            0 8px 26px rgba(60, 40, 20, 0.35);
+    }
+}
+
+/* Gacha burst — a radial flash that fires once when the card becomes selected.
+   Achieved by spawning a sibling pseudo on the .cw-pick--selected card itself
+   that runs once via animation-iteration-count: 1. Re-fires when the class
+   is re-applied (i.e., when a different card is picked then this one again). */
+.cw-pick--selected > .cw-burst {
+    position: absolute;
+    inset: -6px;
+    pointer-events: none;
+    border-radius: 8px;
+    background:
+        radial-gradient(circle at center,
+            rgba(255, 240, 200, 0.85) 0%,
+            rgba(201, 162, 76, 0.55) 30%,
+            rgba(201, 162, 76, 0) 70%);
+    opacity: 0;
+    animation: cw-burst .75s ease-out forwards;
+    z-index: 1;
+}
+
+@keyframes cw-burst {
+    0%   { opacity: 0;   transform: scale(0.4); }
+    20%  { opacity: 1;   transform: scale(1.05); }
+    100% { opacity: 0;   transform: scale(1.8); }
+}
+
+/* card content above the burst overlay */
+.cw-pick > * { position: relative; z-index: 2; }
+
+/* ───── Stagger entry on grids ────────────────────────────────────────────── */
+
+.cw-grid > [class*="col-"] {
+    animation: cw-grid-enter .5s ease-out both;
+}
+.cw-grid > [class*="col-"]:nth-child(1)  { animation-delay: .02s; }
+.cw-grid > [class*="col-"]:nth-child(2)  { animation-delay: .05s; }
+.cw-grid > [class*="col-"]:nth-child(3)  { animation-delay: .08s; }
+.cw-grid > [class*="col-"]:nth-child(4)  { animation-delay: .11s; }
+.cw-grid > [class*="col-"]:nth-child(5)  { animation-delay: .14s; }
+.cw-grid > [class*="col-"]:nth-child(6)  { animation-delay: .17s; }
+.cw-grid > [class*="col-"]:nth-child(7)  { animation-delay: .20s; }
+.cw-grid > [class*="col-"]:nth-child(8)  { animation-delay: .23s; }
+.cw-grid > [class*="col-"]:nth-child(9)  { animation-delay: .26s; }
+.cw-grid > [class*="col-"]:nth-child(10) { animation-delay: .29s; }
+.cw-grid > [class*="col-"]:nth-child(11) { animation-delay: .32s; }
+.cw-grid > [class*="col-"]:nth-child(12) { animation-delay: .35s; }
+
+@keyframes cw-grid-enter {
+    from { opacity: 0; transform: translateY(12px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ───── Wizard step transition ────────────────────────────────────────────── */
+
+.wizard-step {
+    animation: cw-step-in .35s ease-out both;
+}
+@keyframes cw-step-in {
+    from { opacity: 0; transform: translateX(14px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Wizard pills nav — D&D scrollwork style */
+.nav-pills .nav-link {
+    color: var(--cw-ink);
+    border: 1px solid transparent;
+    border-radius: 2px;
+    margin-right: 4px;
+    transition: all .2s ease;
+    font-family: 'Trajan Pro', 'Cinzel', Georgia, serif;
+    letter-spacing: 0.02em;
+    font-size: 0.9rem;
+}
+.nav-pills .nav-link:hover {
+    background: rgba(201, 162, 76, 0.15);
+    border-color: var(--cw-gold-deep);
+}
+.nav-pills .nav-link.active {
+    background: linear-gradient(180deg, var(--cw-burgundy), #4a1212) !important;
+    color: var(--cw-gold-soft) !important;
+    border: 1px solid var(--cw-gold);
+    box-shadow: 0 0 0 1px var(--cw-gold), 0 2px 6px rgba(0,0,0,0.25);
+}
+
+/* ───── Buttons — primary and friends styled as "wax-seal" actions ────────── */
+
+.btn-primary {
+    background: linear-gradient(180deg, #7a1f1f, var(--cw-burgundy)) !important;
+    border-color: var(--cw-gold-deep) !important;
+    color: var(--cw-gold-soft) !important;
+    font-family: 'Trajan Pro', 'Cinzel', Georgia, serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    box-shadow: 0 1px 0 var(--cw-gold) inset, 0 2px 6px rgba(0,0,0,0.25);
+}
+.btn-primary:hover {
+    background: linear-gradient(180deg, #8a2424, #761f1f) !important;
+    color: #fff !important;
+    box-shadow: 0 1px 0 var(--cw-gold-soft) inset, 0 3px 10px rgba(0,0,0,0.32);
+}
+.btn-success {
+    background: linear-gradient(180deg, #3d6b3d, #2d4f2d) !important;
+    border-color: var(--cw-gold-deep) !important;
+    color: var(--cw-gold-soft) !important;
+}
+
+.btn-outline-secondary {
+    color: var(--cw-burgundy);
+    border-color: var(--cw-gold-deep);
+}
+.btn-outline-secondary:hover {
+    background: var(--cw-gold-deep);
+    color: var(--cw-parchment);
+}
+
+.btn-outline-primary {
+    color: var(--cw-burgundy);
+    border-color: var(--cw-burgundy);
+}
+.btn-outline-primary:hover {
+    background: var(--cw-burgundy);
+    color: var(--cw-gold-soft);
+}
+
+/* ───── Focus ring in gold instead of blue ────────────────────────────────── */
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus,
+.form-control:focus, .form-check-input:focus, .form-select:focus {
+    box-shadow:
+        0 0 0 0.1rem var(--cw-parchment),
+        0 0 0 0.22rem var(--cw-gold) !important;
+    border-color: var(--cw-gold) !important;
+    outline: none !important;
+}
+
+/* ───── Form controls ─────────────────────────────────────────────────────── */
+
+.form-control, .form-select {
+    background-color: #fbf5e3;
+    border-color: var(--cw-gold-deep);
+    color: var(--cw-ink);
+}
+.form-check-input:checked {
+    background-color: var(--cw-burgundy);
+    border-color: var(--cw-gold);
+}
+
+/* ───── Badges ────────────────────────────────────────────────────────────── */
+
+.badge.bg-secondary {
+    background: var(--cw-burgundy) !important;
+    color: var(--cw-gold-soft);
+    border: 1px solid var(--cw-gold-deep);
+}
+.badge.bg-light {
+    background: var(--cw-parchment) !important;
+    color: var(--cw-burgundy) !important;
+    border: 1px solid var(--cw-gold-deep);
+}
+
+/* ───── Alerts ────────────────────────────────────────────────────────────── */
+
+.alert-secondary {
+    background: var(--cw-parchment-2);
+    border-color: var(--cw-gold-deep);
+    color: var(--cw-ink);
+}
+
+/* ───── Tables (CW renderer) ──────────────────────────────────────────────── */
+
+.cw-table, table.cw-table {
+    background: var(--cw-parchment);
+    border: 1px solid var(--cw-gold-deep);
+}
+.cw-table thead th {
+    background: var(--cw-burgundy);
+    color: var(--cw-gold-soft);
+    border-color: var(--cw-gold-deep);
+}
+.cw-table tbody tr:nth-child(odd) td { background: rgba(201, 162, 76, 0.06); }
+
+/* ───── Inset / quote / roll spans ────────────────────────────────────────── */
+
+.cw-inset {
+    background: rgba(201, 162, 76, 0.13);
+    border-left: 4px solid var(--cw-gold) !important;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0 4px 4px 0;
+    margin: 0.5rem 0;
+}
+.cw-quote {
+    border-left: 3px solid var(--cw-gold-deep);
+    padding-left: 1rem;
+    font-style: italic;
+    color: #5a4a30;
+}
+.cw-roll {
+    background: linear-gradient(180deg, #f3d57a, #c9a24c);
+    color: #2a1810;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    border: 1px solid var(--cw-gold-deep);
+    font-family: 'Iowan Old Style', Georgia, serif;
+}
+.cw-ref {
+    color: var(--cw-burgundy);
+    border-bottom: 1px dotted var(--cw-burgundy);
+    cursor: pointer;
+}
+.cw-ref:hover {
+    background: rgba(110, 29, 29, 0.08);
+}
+.cw-entry-name {
+    color: var(--cw-burgundy);
+    font-family: 'Trajan Pro', 'Cinzel', Georgia, serif;
+    font-weight: 600;
+}
+
+/* ───── Sticky detail side panel ──────────────────────────────────────────── */
+
+.border.rounded.sticky-top {
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.4), transparent 30%),
+        var(--cw-parchment-2);
+    border: 1px solid var(--cw-gold-deep) !important;
+    box-shadow:
+        inset 0 0 30px rgba(140, 106, 42, 0.10),
+        0 4px 14px rgba(60, 40, 20, 0.18);
+}
+
+/* ───── Scrollbar (WebView2 supports webkit) ──────────────────────────────── */
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: rgba(140, 106, 42, 0.08); }
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--cw-gold), var(--cw-gold-deep));
+    border-radius: 6px;
+    border: 2px solid var(--cw-parchment);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--cw-gold-soft); }
+
+/* ───── DARK mode overrides (when body.cw-dark) ───────────────────────────── */
+
+body.cw-dark {
+    background-color: #14100a;
+    background-image:
+        radial-gradient(ellipse at 20% 10%, rgba(201, 162, 76, 0.05), transparent 60%),
+        radial-gradient(ellipse at 80% 90%, rgba(110, 29, 29, 0.08), transparent 65%),
+        repeating-linear-gradient(135deg,
+            rgba(201, 162, 76, 0.02) 0px,
+            rgba(201, 162, 76, 0.02) 2px,
+            transparent 2px,
+            transparent 6px);
+    color: #d7c89c;
+}
+
+body.cw-dark h1, body.cw-dark h2, body.cw-dark h3, body.cw-dark h4, body.cw-dark h5 {
+    color: var(--cw-gold-soft);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+}
+body.cw-dark h1 { border-bottom-color: var(--cw-gold-deep); }
+
+body.cw-dark .card,
+body.cw-dark .border.rounded {
+    background-color: #1d1610;
+    border-color: var(--cw-gold-deep) !important;
+    color: #e6d9b3;
+}
+body.cw-dark .card-title { color: var(--cw-gold-soft); }
+body.cw-dark .form-control, body.cw-dark .form-select {
+    background: #2a1f15;
+    color: #e6d9b3;
+    border-color: var(--cw-gold-deep);
+}
+body.cw-dark .nav-pills .nav-link { color: #d7c89c; }
+body.cw-dark .btn-outline-secondary { color: var(--cw-gold-soft); border-color: var(--cw-gold-deep); }
+body.cw-dark .btn-outline-secondary:hover { background: var(--cw-gold-deep); color: #1a1108; }
+body.cw-dark .alert-secondary {
+    background: #1d1610;
+    border-color: var(--cw-gold-deep);
+    color: #d7c89c;
+}
+body.cw-dark .cw-ref { color: var(--cw-gold-soft); border-bottom-color: var(--cw-gold-deep); }
+body.cw-dark .cw-quote { color: #aa9466; }
+body.cw-dark .cw-entry-name { color: var(--cw-gold-soft); }
+body.cw-dark .border.rounded.sticky-top {
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 30%),
+        #1d1610;
+}
+body.cw-dark ::-webkit-scrollbar-track { background: rgba(0,0,0,0.4); }
+body.cw-dark ::-webkit-scrollbar-thumb { border-color: #14100a; }
+
+/* ───── Respect reduced-motion preference ─────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .cw-pick,
+    .cw-pick:hover,
+    .cw-pick--selected,
+    .cw-grid > [class*="col-"],
+    .wizard-step,
+    .cw-pick--selected > .cw-burst {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+}

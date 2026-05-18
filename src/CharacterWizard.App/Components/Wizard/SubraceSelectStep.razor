@@ -22,14 +22,15 @@ else
     else
     {
         <p class="text-muted small">Variações da @raceRef.Name com bônus e features distintos.</p>
-        <div class="row g-3">
+        <div class="row g-3 cw-grid">
             @foreach (var sr in subraces)
             {
                 var name = sr.Name ?? "(sem nome)";
                 var selected = string.Equals(Draft.SubraceName, name, StringComparison.OrdinalIgnoreCase);
                 <div class="col-md-4 col-lg-3">
-                    <div class="card h-100 @(selected ? "border-primary" : "")"
-                         style="cursor:pointer" @onclick="() => Pick(name)">
+                    <div class="card h-100 cw-pick @(selected ? "cw-pick--selected border-primary" : "")"
+                         @onclick="() => Pick(name)">
+                        @if (selected) { <span class="cw-burst"></span> }
                         <div class="card-body p-2">
                             <div class="fw-semibold">@name</div>
                             <div class="small text-muted">@sr.Source</div>

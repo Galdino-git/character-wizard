@@ -30,14 +30,15 @@ else
             Selecione a subclass de @cls.Name. Disponível a partir do nível @subclassLevel.
         </p>
 
-        <div class="row g-3">
+        <div class="row g-3 cw-grid">
             @foreach (var sc in subclasses.OrderBy(s => s.Name))
             {
                 var selected = Draft.SubclassRef is { Name: var n, Source: var s }
                             && n == sc.Name && s == sc.Source;
                 <div class="col-md-4 col-lg-3">
-                    <div class="card h-100 @(selected ? "border-primary" : "")"
-                         style="cursor:pointer" @onclick="() => Pick(sc)">
+                    <div class="card h-100 cw-pick @(selected ? "cw-pick--selected border-primary" : "")"
+                         @onclick="() => Pick(sc)">
+                        @if (selected) { <span class="cw-burst"></span> }
                         <div class="card-body p-2">
                             <div class="fw-semibold">@sc.Name</div>
                             <div class="small text-muted">@sc.Source</div>
