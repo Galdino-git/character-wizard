@@ -1,0 +1,151 @@
+@using CharacterWizard.App.Services
+@using CharacterWizard.Core.Models
+@using CharacterWizard.Core.Rules
+@using CharacterWizard.Data.Models
+@using CharacterWizard.Data.Repositories
+@inject CharacterDraft Draft
+@inject ClassRepository ClassRepo
+
+<h3>Escolhas por nível</h3>
+
+@if (Draft.ClassRef is not { } classRef)
+{
+    <div class="text-muted">Escolha uma classe primeiro.</div>
+}
+else if (Draft.InitialLevel <= 1)
+{
+    <div class="text-muted">Nível inicial é 1 — sem escolhas adicionais aqui.</div>
+}
+else if (ClassRepo.Find(classRef) is not { } cls)
+{
+    <div class="text-muted">Classe não encontrada no catálogo.</div>
+}
+else
+{
+    var conMod = AbilityScoreCalculator.Modifier(Draft.BaseAbilityScores.Con);
+    var hitDieFaces = cls.HitDice?.Faces ?? 8;
+    var avgPerLevel = LevelUpRules.AverageHpPerLevel(hitDieFaces);
+    EnsureDraftCollections();
+
+    <p class="text-muted small">
+        Como o personagem começa em <strong>nível @Draft.InitialLevel</strong>,
+        registre as escolhas (HP, ASI/feat, spells aprendidos) de cada level-up
+        intermediário. Você ainda pode fazer level-up depois — esses dados ficam
+        registrados em <code>HitPointRolls</code> e <code>ChoicesByLevel</code>.
+    </p>
+
+    <div class="accordion" id="levelAccordion">
+        @for (int level = 2; level <= Draft.InitialLevel; level++)
+        {
+            var lvl = level;
+            var rollIdx = lvl - 2;
+            var hpRoll = rollIdx < Draft.HitPointRolls.Count ? Draft.HitPointRolls[rollIdx] : avgPerLevel + conMod;
+            var isAsi = LevelUpRules.IsAsiLevel(lvl);
+            var asiSet = Draft.LevelAsi.GetValueOrDefault(lvl);
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button @(lvl == 2 ? "" : "collapsed")" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#lvl-@lvl">
+                        Nível @lvl
+                        <span class="ms-2 small text-muted">
+                            HP +@hpRoll
+                            @if (isAsi) { <span> · ASI</span> }
+                        </span>
+                    </button>
+                </h2>
+                <div id="lvl-@lvl" class="accordion-collapse collapse @(lvl == 2 ? "show" : "")">
+                    <div class="accordion-body">
+                        <div class="mb-2">
+                            <label class="form-label small mb-0">HP ganho (incluindo CON @(conMod >= 0 ? "+" : "")@conMod)</label>
+                            <input type="number" class="form-control form-control-sm" style="max-width: 8rem;"
+                                   min="1" max="@(hitDieFaces + conMod)"
+                                   value="@hpRoll"
+                                   @onchange="e => SetHp(lvl, e.Value)" />
+                            <div class="form-text">Média: @(avgPerLevel + conMod) · Máximo: @(hitDieFaces + conMod)</div>
+                        </div>
+
+                        @if (isAsi)
+                        {
+                            <div class="mb-2">
+                                <label class="form-label small mb-0">ASI ou Feat</label>
+                                <select class="form-select form-select-sm" style="max-width: 14rem;"
+                                        value="@(asiSet?.Mode ?? "asi")"
+                                        @onchange="e => SetMode(lvl, e.Value?.ToString())">
+                                    <option value="asi">ASI (+2 total)</option>
+                                    <option value="feat">Feat (manual)</option>
+                                </select>
+                            </div>
+
+                            @if ((asiSet?.Mode ?? "asi") == "asi")
+                            {
+                                <div class="row g-2">
+                                    @foreach (var a in (Ability[])Enum.GetValues(typeof(Ability)))
+                                    {
+                                        var ability = a;
+                                        <div class="col-4 col-md-2">
+                                            <label class="form-label small mb-0">@a.ToString().ToUpperInvariant()</label>
+                                            <input type="number" class="form-control form-control-sm" min="0" max="2"
+                                                   value="@(GetAsi(lvl, ability))"
+                                                   @onchange="e => SetAsi(lvl, ability, e.Value)" />
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="small text-muted">
+                                    (Feat: pickup pelo level-up modal pós-criação ou edite manualmente.)
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public EventCallback OnApplied { get; set; }
+
+    private void EnsureDraftCollections()
+    {
+        // Pre-fill HP rolls with averages so the user can simply confirm.
+        var levels = Draft.InitialLevel;
+        var con = AbilityScoreCalculator.Modifier(Draft.BaseAbilityScores.Con);
+        var faces = (ClassRepo.Find(Draft.ClassRef!.Value)?.HitDice?.Faces ?? 8);
+        var avg = LevelUpRules.AverageHpPerLevel(faces) + con;
+        while (Draft.HitPointRolls.Count < levels - 1) Draft.HitPointRolls.Add(avg);
+    }
+
+    private void SetHp(int level, object? raw)
+    {
+        if (raw is null) return;
+        if (!int.TryParse(raw.ToString(), out var v)) return;
+        var idx = level - 2;
+        while (Draft.HitPointRolls.Count <= idx) Draft.HitPointRolls.Add(0);
+        Draft.HitPointRolls[idx] = Math.Max(1, v);
+    }
+
+    private void SetMode(int level, string? mode)
+    {
+        Draft.LevelAsi[level] = new CharacterDraft.LevelAsiChoice
+        {
+            Mode = string.IsNullOrEmpty(mode) ? "asi" : mode,
+            Allocation = Draft.LevelAsi.GetValueOrDefault(level)?.Allocation ?? new(),
+        };
+    }
+
+    private int GetAsi(int level, Ability a) =>
+        Draft.LevelAsi.GetValueOrDefault(level)?.Allocation?.GetValueOrDefault(a) ?? 0;
+
+    private void SetAsi(int level, Ability a, object? raw)
+    {
+        if (raw is null || !int.TryParse(raw.ToString(), out var v)) return;
+        if (!Draft.LevelAsi.TryGetValue(level, out var existing) || existing is null)
+            existing = new CharacterDraft.LevelAsiChoice { Mode = "asi", Allocation = new() };
+        existing.Allocation[a] = Math.Clamp(v, 0, 2);
+        Draft.LevelAsi[level] = existing;
+    }
+}

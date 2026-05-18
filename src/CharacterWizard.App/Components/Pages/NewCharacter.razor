@@ -84,6 +84,7 @@
         case "Multiclass":   <MulticlassStep />    break;
         case "Background":   <BackgroundSelectStep /> break;
         case "Atributos":    <AbilitiesStep />     break;
+        case "Escolhas por nível": <LevelChoicesStep /> break;
         case "Spells":       <SpellSelectStep />   break;
         case "Equipamento":  <EquipmentStep />     break;
         case "Revisão":      <ReviewStep />        break;
@@ -136,6 +137,9 @@
 
         s.Add("Background");
         s.Add("Atributos");
+
+        if (Draft.InitialLevel > 1 && Draft.ClassRef is not null)
+            s.Add("Escolhas por nível");
 
         if (Draft.ClassRef is { } cc &&
             ClassRepo.Find(cc) is { SpellcastingAbility: { Length: > 0 } })

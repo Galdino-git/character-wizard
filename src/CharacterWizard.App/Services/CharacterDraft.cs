@@ -29,6 +29,19 @@ public sealed class CharacterDraft
     public List<EntityRef> KnownSpells { get; set; } = new();
     public List<InventoryItem> Inventory { get; set; } = new();
 
+    /// <summary>HP gained per class level after the 1st, in order (level 2, 3, …).</summary>
+    public List<int> HitPointRolls { get; set; } = new();
+
+    /// <summary>ASI/feat choice per level for the primary class. Key is the level (4, 8, 12, 16, 19).</summary>
+    public Dictionary<int, LevelAsiChoice> LevelAsi { get; set; } = new();
+
+    public sealed class LevelAsiChoice
+    {
+        public string Mode { get; set; } = "asi"; // "asi" | "feat"
+        public Dictionary<Ability, int> Allocation { get; set; } = new();
+        public EntityRef? FeatRef { get; set; }
+    }
+
     public void Reset()
     {
         Name = "";
@@ -42,14 +55,39 @@ public sealed class CharacterDraft
         AdditionalClasses = new();
         KnownSpells = new();
         Inventory = new();
+        HitPointRolls = new();
+        LevelAsi = new();
     }
 
     public Character ToCharacter()
     {
+        var primary = ClassRef is { } cr
+            ? new CharacterClassEntry
+            {
+                ClassRef = cr,
+                Levels = InitialLevel,
+                SubclassRef = SubclassRef,
+                HitPointRolls = HitPointRolls.Select(v => (int?)v).ToList(),
+            }
+            : null;
+
         var classes = new List<CharacterClassEntry>();
-        if (ClassRef is { } cr)
-            classes.Add(new() { ClassRef = cr, Levels = InitialLevel, SubclassRef = SubclassRef });
+        if (primary is not null) classes.Add(primary);
         classes.AddRange(AdditionalClasses);
+
+        // Materialize ASI/feat choices recorded during high-level creation into
+        // the character's ChoicesByLevel. Keys are the *total* level at the time
+        // the choice was made — since multiclass isn't decided yet during the
+        // primary-class level-up step, total == primary level.
+        var choicesByLevel = LevelAsi.ToDictionary(
+            kv => kv.Key,
+            kv =>
+            {
+                var c = new LevelChoices { AsiOrFeat = kv.Value.Mode };
+                if (kv.Value.Mode == "asi") c.AsiAllocation = new(kv.Value.Allocation);
+                else c.FeatRef = kv.Value.FeatRef;
+                return c;
+            });
 
         return new Character
         {
@@ -61,6 +99,7 @@ public sealed class CharacterDraft
             Classes = classes,
             KnownSpells = new(KnownSpells),
             Inventory = new(Inventory),
+            ChoicesByLevel = choicesByLevel,
         };
     }
 }
