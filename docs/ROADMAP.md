@@ -126,22 +126,30 @@ Spec: [`docs/specs/m3-configurations-and-polish.md`](specs/m3-configurations-and
 ### Descopo definitivo
 - Telemetria local — fora do escopo de ferramenta pessoal.
 
-## 🔄 M4 — Distribuição (planejada, escopo mínimo)
+## ✅ M4 — Distribuição (entregue 2026-05-17)
 
 Spec: [`docs/specs/m4-distribution.md`](specs/m4-distribution.md) · Design: [`docs/design/m4-distribution.md`](design/m4-distribution.md) · Tasks: [`docs/tasks/m4-distribution.md`](tasks/m4-distribution.md)
 
-Objetivo: ter um ZIP que um amigo baixa, extrai e roda. Hospedar no GitHub via Releases.
+- [x] `dotnet publish` self-contained `win-x64` validado (234 MB sem dados, 266 MB ZIP final)
+- [x] [`tools/Build-Release.ps1`](../tools/Build-Release.ps1) automatiza import → publish → copia `data/` ao lado do exe → zipa em `artifacts/`
+- [x] [`docs/release.md`](release.md) com pré-requisitos, build, validação, `gh release create` + web UI alternativa, troubleshooting
+- [x] [`README.md`](../README.md) com seção "Para usar (não-dev)" apontando pra Releases
+- [x] Código no GitHub: **https://github.com/Galdino-git/character-wizard**
+- [x] Tag `v0.1.0` empurrada
+- [x] [Release notes v0.1.0](release-notes/v0.1.0.md) prontas
 
-- [ ] `dotnet publish` self-contained `win-x64` validado
-- [ ] `tools/Build-Release.ps1` automatiza importar dados → publish → copiar `data/` ao lado do exe → zipar
-- [ ] `docs/release.md` documenta build + `gh release create` + instruções para usuário final (SmartScreen, WebView2)
-- [ ] `README.md` ganha seção "Para usar (não-dev)" apontando pra Releases
-- [ ] Push do código pro GitHub
-- [ ] Primeira release `v0.1.0` publicada
+### Última etapa manual (sem gh CLI instalado)
+Subir o ZIP via web UI:
+1. Abra https://github.com/Galdino-git/character-wizard/releases/new
+2. "Choose a tag" → `v0.1.0`
+3. Title: `v0.1.0`
+4. Description: cole o conteúdo de `docs/release-notes/v0.1.0.md`
+5. "Attach binaries" → arraste `artifacts/CharacterWizard-v0.1.0-win-x64.zip`
+6. Publish release
 
 ### Descopo deliberado
 - MSIX, Microsoft Store, assinatura comercial
-- Embedded data + bootstrapper de extração (era over-engineering; `data/` ao lado do exe basta)
+- Embedded data + bootstrapper (era over-engineering; `data/` ao lado do exe funciona)
 - Auto-update via internet
 - Cross-platform
-- GitHub Actions CI (futuro, fora do escopo)
+- GitHub Actions CI
