@@ -36,6 +36,8 @@ public sealed record ClassData
     [JsonPropertyName("hasFluff")]       public bool? HasFluff { get; init; }
     [JsonPropertyName("hasFluffImages")] public bool? HasFluffImages { get; init; }
 
+    [JsonPropertyName("reprintedAs")] public string[]? ReprintedAs { get; init; }
+
     public EntityRef Ref => new(Name, Source);
 }
 
@@ -54,6 +56,8 @@ public sealed record SubclassData
     [JsonPropertyName("classSource")] public string ClassSource { get; init; } = "";
 
     [JsonPropertyName("subclassFeatures")] public JsonElement? SubclassFeatures { get; init; }
+
+    [JsonPropertyName("reprintedAs")] public string[]? ReprintedAs { get; init; }
 
     public EntityRef Ref => new(Name, Source);
 }

@@ -21,5 +21,7 @@ public sealed record BackgroundData
     [JsonPropertyName("hasFluff")]       public bool? HasFluff { get; init; }
     [JsonPropertyName("hasFluffImages")] public bool? HasFluffImages { get; init; }
 
+    [JsonPropertyName("reprintedAs")] public string[]? ReprintedAs { get; init; }
+
     public EntityRef Ref => new(Name, Source);
 }

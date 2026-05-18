@@ -13,5 +13,7 @@ public sealed record FeatData
     [JsonPropertyName("ability")]      public JsonElement? Ability { get; init; }
     [JsonPropertyName("entries")]      public JsonElement? Entries { get; init; }
 
+    [JsonPropertyName("reprintedAs")] public string[]? ReprintedAs { get; init; }
+
     public EntityRef Ref => new(Name, Source);
 }

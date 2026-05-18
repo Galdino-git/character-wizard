@@ -23,5 +23,7 @@ public sealed record SpellData
 
     [JsonPropertyName("classes")] public JsonElement? Classes { get; init; }
 
+    [JsonPropertyName("reprintedAs")] public string[]? ReprintedAs { get; init; }
+
     public EntityRef Ref => new(Name, Source);
 }

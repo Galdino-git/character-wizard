@@ -14,6 +14,10 @@ public sealed class SourceFilter
     private readonly HashSet<string> _disabledSources;
     private readonly HashSet<string> _enabledSources;
 
+    /// <summary>When true, callers should drop entries whose <c>reprintedAs</c> array
+    /// is non-empty (i.e. older versions superseded by newer ones).</summary>
+    public bool HideReprintedVersions { get; }
+
     public SourceFilter(Catalog catalog, SourceFilterSettings settings)
     {
         _sourceToGroup = catalog.Books.ToDictionary(
@@ -24,6 +28,7 @@ public sealed class SourceFilter
         _enabledGroups   = new HashSet<string>(settings.EnabledGroups,   StringComparer.OrdinalIgnoreCase);
         _disabledSources = new HashSet<string>(settings.DisabledSources, StringComparer.OrdinalIgnoreCase);
         _enabledSources  = new HashSet<string>(settings.EnabledSources,  StringComparer.OrdinalIgnoreCase);
+        HideReprintedVersions = settings.HideReprintedVersions;
     }
 
     public bool IsEnabled(string source)
@@ -56,6 +61,9 @@ public sealed record SourceFilterSettings
     /// <summary>Individual sources to force-disable even if their group is enabled.</summary>
     public IReadOnlyCollection<string> DisabledSources { get; init; } = Array.Empty<string>();
 
+    /// <summary>If true, entries with non-empty reprintedAs are dropped.</summary>
+    public bool HideReprintedVersions { get; init; } = true;
+
     public static SourceFilterSettings AllowAll() => new()
     {
         EnabledGroups =
@@ -64,5 +72,6 @@ public sealed record SourceFilterSettings
             "setting", "setting-alt",
             "organized-play", "screen", "homecraft", "recipe", "other",
         ],
+        HideReprintedVersions = false,
     };
 }

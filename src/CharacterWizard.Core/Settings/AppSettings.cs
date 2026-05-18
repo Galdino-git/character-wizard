@@ -16,6 +16,13 @@ public sealed class AppSettings
 
     /// <summary>"light" (default) or "dark".</summary>
     public string Theme { get; set; } = "light";
+
+    /// <summary>
+    /// When true (default), entries with `reprintedAs` (older versions superseded
+    /// by newer ones — e.g. Aasimar/DMG when Aasimar/XPHB exists) are hidden
+    /// from listings. Turn off to see all historic versions.
+    /// </summary>
+    public bool HideReprintedVersions { get; set; } = true;
 }
 
 public sealed class AppSettingsStore

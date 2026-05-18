@@ -43,17 +43,22 @@ public sealed class RaceRepository
     public RaceRepository(ICatalogSource src) => _src = src;
     public RaceRepository(Catalog catalog, SourceFilter filter) : this(new StaticCatalogSource(catalog, filter)) { }
 
-    public IEnumerable<RaceData> All() => _src.Filter.Filter(_src.Catalog.Races, r => r.Source);
+    public IEnumerable<RaceData> All() =>
+        _src.Filter.Filter(_src.Catalog.Races, r => r.Source)
+            .Where(r => !_src.Filter.HideReprintedVersions || !HasReprints(r.ReprintedAs));
 
     public IEnumerable<SubraceData> SubracesOf(EntityRef raceRef) =>
         _src.Filter.Filter(_src.Catalog.Subraces, s => s.Source)
                .Where(s => string.Equals(s.RaceName, raceRef.Name, StringComparison.OrdinalIgnoreCase)
-                        && string.Equals(s.RaceSource, raceRef.Source, StringComparison.OrdinalIgnoreCase));
+                        && string.Equals(s.RaceSource, raceRef.Source, StringComparison.OrdinalIgnoreCase))
+               .Where(s => !_src.Filter.HideReprintedVersions || !HasReprints(s.ReprintedAs));
 
     public RaceData? Find(EntityRef r) =>
         _src.Catalog.Races.FirstOrDefault(x =>
             string.Equals(x.Name, r.Name, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(x.Source, r.Source, StringComparison.OrdinalIgnoreCase));
+
+    internal static bool HasReprints(string[]? r) => r is { Length: > 0 };
 }
 
 public sealed class ClassRepository
@@ -62,7 +67,9 @@ public sealed class ClassRepository
     public ClassRepository(ICatalogSource src) => _src = src;
     public ClassRepository(Catalog catalog, SourceFilter filter) : this(new StaticCatalogSource(catalog, filter)) { }
 
-    public IEnumerable<ClassData> All() => _src.Filter.Filter(_src.Catalog.Classes, c => c.Source);
+    public IEnumerable<ClassData> All() =>
+        _src.Filter.Filter(_src.Catalog.Classes, c => c.Source)
+            .Where(c => !_src.Filter.HideReprintedVersions || !RaceRepository.HasReprints(c.ReprintedAs));
 
     public IEnumerable<SubclassData> SubclassesOf(EntityRef classRef) =>
         _src.Filter.Filter(_src.Catalog.Subclasses, s => s.Source)
@@ -81,7 +88,9 @@ public sealed class BackgroundRepository
     public BackgroundRepository(ICatalogSource src) => _src = src;
     public BackgroundRepository(Catalog catalog, SourceFilter filter) : this(new StaticCatalogSource(catalog, filter)) { }
 
-    public IEnumerable<BackgroundData> All() => _src.Filter.Filter(_src.Catalog.Backgrounds, b => b.Source);
+    public IEnumerable<BackgroundData> All() =>
+        _src.Filter.Filter(_src.Catalog.Backgrounds, b => b.Source)
+            .Where(b => !_src.Filter.HideReprintedVersions || !RaceRepository.HasReprints(b.ReprintedAs));
 
     public BackgroundData? Find(EntityRef r) =>
         _src.Catalog.Backgrounds.FirstOrDefault(x =>
@@ -95,7 +104,9 @@ public sealed class SpellRepository
     public SpellRepository(ICatalogSource src) => _src = src;
     public SpellRepository(Catalog catalog, SourceFilter filter) : this(new StaticCatalogSource(catalog, filter)) { }
 
-    public IEnumerable<SpellData> All() => _src.Filter.Filter(_src.Catalog.Spells, s => s.Source);
+    public IEnumerable<SpellData> All() =>
+        _src.Filter.Filter(_src.Catalog.Spells, s => s.Source)
+            .Where(s => !_src.Filter.HideReprintedVersions || !RaceRepository.HasReprints(s.ReprintedAs));
 
     public IEnumerable<SpellData> AtLevel(int level) => All().Where(s => s.Level == level);
 
@@ -115,7 +126,9 @@ public sealed class ItemRepository
     public ItemRepository(ICatalogSource src) => _src = src;
     public ItemRepository(Catalog catalog, SourceFilter filter) : this(new StaticCatalogSource(catalog, filter)) { }
 
-    public IEnumerable<ItemData> All() => _src.Filter.Filter(_src.Catalog.Items, i => i.Source);
+    public IEnumerable<ItemData> All() =>
+        _src.Filter.Filter(_src.Catalog.Items, i => i.Source)
+            .Where(i => !_src.Filter.HideReprintedVersions || !RaceRepository.HasReprints(i.ReprintedAs));
 
     public ItemData? Find(EntityRef r) =>
         _src.Catalog.Items.FirstOrDefault(x =>
@@ -129,5 +142,7 @@ public sealed class FeatRepository
     public FeatRepository(ICatalogSource src) => _src = src;
     public FeatRepository(Catalog catalog, SourceFilter filter) : this(new StaticCatalogSource(catalog, filter)) { }
 
-    public IEnumerable<FeatData> All() => _src.Filter.Filter(_src.Catalog.Feats, f => f.Source);
+    public IEnumerable<FeatData> All() =>
+        _src.Filter.Filter(_src.Catalog.Feats, f => f.Source)
+            .Where(f => !_src.Filter.HideReprintedVersions || !RaceRepository.HasReprints(f.ReprintedAs));
 }

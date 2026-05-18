@@ -46,5 +46,6 @@ public sealed class CatalogProvider : ICatalogSource
             EnabledGroups   = settings.EnabledGroups,
             EnabledSources  = settings.EnabledSources,
             DisabledSources = settings.DisabledSources,
+            HideReprintedVersions = settings.HideReprintedVersions,
         });
 }

@@ -16,6 +16,23 @@
 <p class="text-muted">Habilite ou desabilite grupos de livros e fontes individuais.</p>
 
 <div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="form-check form-switch">
+            <input type="checkbox" class="form-check-input" id="hide-reprints"
+                   checked="@_hideReprints"
+                   @onchange="e => _hideReprints = (bool)(e.Value ?? false)" />
+            <label class="form-check-label" for="hide-reprints">
+                <strong>Esconder versões antigas (reprints)</strong>
+                <div class="small text-muted">
+                    Quando um livro novo (ex.: XPHB) republica uma raça/classe/item do PHB, mostra só a versão nova.
+                    Desligue se quiser ver lado a lado as duas edições.
+                </div>
+            </label>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
     <div class="card-body py-2 d-flex justify-content-between align-items-center">
         <div>
             <strong>Catálogo</strong>
@@ -66,17 +83,31 @@
 {
     var groupKey = group.Key;
     var groupEnabled = _enabledGroups.Contains(groupKey);
+    var booksInGroup = group.ToList();
+    var enabledInGroup = booksInGroup.Count(b => IsSourceEnabled(b.Source, groupEnabled));
 
     <div class="card mb-2">
         <div class="card-body py-2">
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="g-@groupKey"
-                       checked="@groupEnabled"
-                       @onchange="e => ToggleGroup(groupKey, (bool)(e.Value ?? false))" />
-                <label class="form-check-label fw-semibold" for="g-@groupKey">
-                    @GroupLabel(groupKey)
-                    <span class="badge bg-light text-dark ms-2">@group.Count() livros</span>
-                </label>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="g-@groupKey"
+                           checked="@groupEnabled"
+                           @onchange="e => ToggleGroup(groupKey, (bool)(e.Value ?? false))" />
+                    <label class="form-check-label fw-semibold" for="g-@groupKey">
+                        @GroupLabel(groupKey)
+                        <span class="badge bg-light text-dark ms-2">@enabledInGroup / @booksInGroup.Count livros</span>
+                    </label>
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary"
+                            @onclick="() => SelectAllInGroup(booksInGroup, groupEnabled, true)">
+                        Todos
+                    </button>
+                    <button class="btn btn-outline-secondary"
+                            @onclick="() => SelectAllInGroup(booksInGroup, groupEnabled, false)">
+                        Nenhum
+                    </button>
+                </div>
             </div>
 
             <div class="ms-4 mt-1 row">
@@ -112,6 +143,7 @@
     private HashSet<string> _enabledGroups = new(StringComparer.OrdinalIgnoreCase);
     private HashSet<string> _enabledSourcesOverride = new(StringComparer.OrdinalIgnoreCase);
     private HashSet<string> _disabledSourcesOverride = new(StringComparer.OrdinalIgnoreCase);
+    private bool _hideReprints = true;
     private string? _status;
     private string? _reloadStatus;
 
@@ -127,6 +159,13 @@
         _enabledGroups = new(Cfg.EnabledGroups, StringComparer.OrdinalIgnoreCase);
         _enabledSourcesOverride = new(Cfg.EnabledSources, StringComparer.OrdinalIgnoreCase);
         _disabledSourcesOverride = new(Cfg.DisabledSources, StringComparer.OrdinalIgnoreCase);
+        _hideReprints = Cfg.HideReprintedVersions;
+    }
+
+    private void SelectAllInGroup(List<BookInfo> books, bool groupEnabled, bool enable)
+    {
+        foreach (var b in books)
+            ToggleSource(b.Source, groupEnabled, enable);
     }
 
     private void ToggleGroup(string key, bool on)
@@ -154,6 +193,7 @@
         Cfg.EnabledGroups   = _enabledGroups.ToList();
         Cfg.EnabledSources  = _enabledSourcesOverride.ToList();
         Cfg.DisabledSources = _disabledSourcesOverride.ToList();
+        Cfg.HideReprintedVersions = _hideReprints;
         SettingsStore.Save(Cfg);
         Catalog.ApplySettings(Cfg);
         _status = "Aplicado.";

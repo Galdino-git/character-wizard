@@ -50,6 +50,52 @@ public class CatalogLoaderTests
     }
 
     [Fact]
+    public void Repos_hide_reprinted_versions_by_default()
+    {
+        var dataRoot = FindDataRoot();
+        if (dataRoot is null) return;
+
+        var catalog = new CatalogLoader().Load(dataRoot);
+        var filter  = new SourceFilter(catalog, SourceFilterSettings.AllowAll() with { HideReprintedVersions = true });
+
+        var races = new RaceRepository(new TestSrc(catalog, filter)).All().ToList();
+
+        // Aasimar exists in both PHB (legacy) and XPHB (reprint). With dedup on,
+        // only the XPHB version should remain.
+        var aasimars = races.Where(r => r.Name.Equals("Aasimar", StringComparison.OrdinalIgnoreCase)).ToList();
+        if (aasimars.Count > 0)
+        {
+            Assert.Single(aasimars);
+            Assert.DoesNotContain(aasimars, r => r.Source.Equals("PHB", StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    [Fact]
+    public void Repos_show_reprinted_versions_when_flag_off()
+    {
+        var dataRoot = FindDataRoot();
+        if (dataRoot is null) return;
+
+        var catalog = new CatalogLoader().Load(dataRoot);
+        var filter  = new SourceFilter(catalog, SourceFilterSettings.AllowAll() with { HideReprintedVersions = false });
+
+        var races = new RaceRepository(new TestSrc(catalog, filter)).All().ToList();
+        var aasimars = races.Where(r => r.Name.Equals("Aasimar", StringComparison.OrdinalIgnoreCase)).ToList();
+
+        // With dedup OFF, if both PHB and XPHB versions exist, both should appear.
+        var phbCount  = catalog.Races.Count(r => r.Name == "Aasimar" && r.Source == "PHB");
+        var xphbCount = catalog.Races.Count(r => r.Name == "Aasimar" && r.Source == "XPHB");
+        if (phbCount > 0 && xphbCount > 0)
+            Assert.True(aasimars.Count >= 2);
+    }
+
+    private sealed class TestSrc(Catalog c, SourceFilter f) : ICatalogSource
+    {
+        public Catalog Catalog { get; } = c;
+        public SourceFilter Filter { get; } = f;
+    }
+
+    [Fact]
     public void SourceFilter_restricts_to_enabled_groups()
     {
         var dataRoot = FindDataRoot();

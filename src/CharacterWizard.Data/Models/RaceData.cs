@@ -23,6 +23,9 @@ public sealed record RaceData
     /// <summary>True if this is a "_copy" entry whose body lives elsewhere.</summary>
     [JsonPropertyName("_copy")] public JsonElement? CopyOf { get; init; }
 
+    /// <summary>Names of newer entries that supersede this one (e.g. XPHB version of a PHB race).</summary>
+    [JsonPropertyName("reprintedAs")] public string[]? ReprintedAs { get; init; }
+
     public EntityRef Ref => new(Name, Source);
 }
 
@@ -34,4 +37,5 @@ public sealed record SubraceData
     [JsonPropertyName("raceSource")] public string RaceSource { get; init; } = "";
     [JsonPropertyName("ability")]   public JsonElement? Ability { get; init; }
     [JsonPropertyName("entries")]   public JsonElement? Entries { get; init; }
+    [JsonPropertyName("reprintedAs")] public string[]? ReprintedAs { get; init; }
 }
