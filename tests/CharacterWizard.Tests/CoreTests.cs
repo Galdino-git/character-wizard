@@ -45,6 +45,82 @@ public class ProficiencyBonusTests
         Assert.Equal(expected, ProficiencyBonus.ForLevel(level));
 }
 
+public class HitPointCalculatorTests
+{
+    private static int? D10(EntityRef r) => r.Name == "Fighter" ? 10 : (int?)null;
+    private static int? D6(EntityRef r) => r.Name == "Wizard" ? 6 : (int?)null;
+    private static int? Both(EntityRef r) => r.Name switch { "Fighter" => 10, "Wizard" => 6, _ => null };
+
+    [Fact]
+    public void Level1_d10_con2_returns_max_plus_mod()
+    {
+        var c = new Character
+        {
+            BaseAbilityScores = new() { Con = 14 },
+            Classes = { new CharacterClassEntry { ClassRef = new("Fighter", "PHB"), Levels = 1 } },
+        };
+        Assert.Equal(12, HitPointCalculator.ComputeMaxHp(c, D10));
+    }
+
+    [Fact]
+    public void Level5_with_rolls_sums_correctly()
+    {
+        // d10 fighter, con+2. L1 = 12. Rolls [6,5,8,7] (already include con mod) for L2-L5.
+        var c = new Character
+        {
+            BaseAbilityScores = new() { Con = 14 },
+            Classes = { new CharacterClassEntry
+            {
+                ClassRef = new("Fighter", "PHB"), Levels = 5,
+                HitPointRolls = { 6, 5, 8, 7 },
+            } },
+        };
+        Assert.Equal(12 + 6 + 5 + 8 + 7, HitPointCalculator.ComputeMaxHp(c, D10));
+    }
+
+    [Fact]
+    public void Level_without_rolls_uses_average_plus_mod()
+    {
+        // d10 fighter L5 with no rolls: L1=10+2=12, L2-L5 each = (10/2+1)+2 = 8
+        var c = new Character
+        {
+            BaseAbilityScores = new() { Con = 14 },
+            Classes = { new CharacterClassEntry { ClassRef = new("Fighter", "PHB"), Levels = 5 } },
+        };
+        Assert.Equal(12 + 4 * 8, HitPointCalculator.ComputeMaxHp(c, D10));
+    }
+
+    [Fact]
+    public void Multiclass_sums_both_classes()
+    {
+        // Fighter 3 + Wizard 2, con +2
+        // Fighter L1=12, L2-L3 avg = 8 each → 12+16 = 28
+        // Wizard L1=8 (6+2), L2 avg = (6/2+1)+2 = 6 → 8+6 = 14
+        // Total: 42
+        var c = new Character
+        {
+            BaseAbilityScores = new() { Con = 14 },
+            Classes =
+            {
+                new() { ClassRef = new("Fighter", "PHB"), Levels = 3 },
+                new() { ClassRef = new("Wizard",  "PHB"), Levels = 2 },
+            },
+        };
+        Assert.Equal(42, HitPointCalculator.ComputeMaxHp(c, Both));
+    }
+
+    [Fact]
+    public void Unknown_class_contributes_zero()
+    {
+        var c = new Character
+        {
+            BaseAbilityScores = new() { Con = 14 },
+            Classes = { new() { ClassRef = new("Homebrew", "X"), Levels = 5 } },
+        };
+        Assert.Equal(0, HitPointCalculator.ComputeMaxHp(c, _ => null));
+    }
+}
+
 public class LevelUpRulesTests
 {
     [Theory]
