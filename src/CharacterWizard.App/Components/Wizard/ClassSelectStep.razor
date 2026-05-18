@@ -1,6 +1,7 @@
 @using CharacterWizard.App.Components.Shared
 @using CharacterWizard.App.Services
 @using CharacterWizard.Core.Models
+@using CharacterWizard.Data.EntryRendering
 @using CharacterWizard.Data.Models
 @using CharacterWizard.Data.Repositories
 @inject CharacterDraft Draft
@@ -9,42 +10,71 @@
 
 <h3>Classe</h3>
 
-<div class="row g-3">
-    @foreach (var c in ClassRepo.All().OrderBy(c => c.Name))
-    {
-        var selected = Draft.ClassRef is { Name: var n, Source: var s }
-                    && n == c.Name && s == c.Source;
-        var img = Images.GetClassImage(c.Name, c.Source);
+<div class="row">
+    <div class="col-lg-8">
+        <div class="row g-3">
+            @foreach (var c in ClassRepo.All().OrderBy(c => c.Name))
+            {
+                var selected = Draft.ClassRef is { Name: var n, Source: var s }
+                            && n == c.Name && s == c.Source;
+                var img = Images.GetClassImage(c.Name, c.Source);
 
-        <div class="col-md-4 col-lg-3">
-            <div class="card h-100 @(selected ? "border-primary" : "")"
-                 style="cursor:pointer" @onclick="() => Pick(c)">
-                @if (img is not null)
-                {
-                    <img src="@img" class="card-img-top"
-                         style="object-fit:cover; height:160px;" alt="@c.Name" />
-                }
-                else
-                {
-                    <div class="card-img-top bg-secondary"
-                         style="height:160px; opacity:0.2;"></div>
-                }
-                <div class="card-body p-2">
-                    <div class="fw-semibold">@c.Name</div>
-                    <div class="small text-muted">
-                        @c.Source · d@(c.HitDice?.Faces) HD
-                        @if (!string.IsNullOrEmpty(c.SpellcastingAbility))
+                <div class="col-md-6 col-xl-4">
+                    <div class="card h-100 @(selected ? "border-primary" : "")"
+                         style="cursor:pointer" @onclick="() => Pick(c)">
+                        @if (img is not null)
                         {
-                            <span> · @c.SpellcastingAbility.ToUpperInvariant()</span>
+                            <img src="@img" class="card-img-top"
+                                 style="object-fit:cover; height:140px;" alt="@c.Name" />
                         }
+                        else
+                        {
+                            <div class="card-img-top bg-secondary"
+                                 style="height:140px; opacity:0.2;"></div>
+                        }
+                        <div class="card-body p-2">
+                            <div class="fw-semibold">@c.Name</div>
+                            <div class="small text-muted">
+                                @c.Source · d@(c.HitDice?.Faces) HD
+                                @if (!string.IsNullOrEmpty(c.SpellcastingAbility))
+                                {
+                                    <span> · @c.SpellcastingAbility.ToUpperInvariant()</span>
+                                }
+                            </div>
+                        </div>
                     </div>
-                    <button class="btn btn-link btn-sm p-0"
-                            @onclick:stopPropagation
-                            @onclick="() => OpenDetail(c)">ⓘ detalhes</button>
                 </div>
-            </div>
+            }
         </div>
-    }
+    </div>
+
+    <div class="col-lg-4">
+        @if (Selected() is { } sel)
+        {
+            <div class="border rounded p-3 sticky-top" style="top:1rem;">
+                <h5 class="mb-1">@sel.Name</h5>
+                <div class="small text-muted mb-2">
+                    @sel.Source@(sel.Page is int p ? $" · p. {p}" : "")
+                    · d@(sel.HitDice?.Faces) HD
+                    @if (!string.IsNullOrEmpty(sel.SpellcastingAbility))
+                    {
+                        <span> · @sel.SpellcastingAbility.ToUpperInvariant() caster</span>
+                    }
+                </div>
+                @if (sel.SavingThrowProficiencies is { } sp)
+                {
+                    <div class="small mb-2"><strong>Saves:</strong> @string.Join(", ", sp.Select(s => s.ToUpperInvariant()))</div>
+                }
+                <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenDetail(sel)">
+                    ⓘ Detalhe completo
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="text-muted small p-3">Selecione uma classe à esquerda para ver detalhes.</div>
+        }
+    </div>
 </div>
 
 <EntityDetailPanel Open="_detailOpen" Category="Class" Ref="_detailRef" OnClose="CloseDetail" />
@@ -52,6 +82,9 @@
 @code {
     private bool _detailOpen;
     private EntityRef? _detailRef;
+
+    private ClassData? Selected() =>
+        Draft.ClassRef is { } c ? ClassRepo.Find(c) : null;
 
     private void Pick(ClassData c) =>
         Draft.ClassRef = new EntityRef(c.Name, c.Source);
