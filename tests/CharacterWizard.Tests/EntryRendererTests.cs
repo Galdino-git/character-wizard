@@ -283,4 +283,31 @@ public class EntryRenderer_StructuredEntriesTests
         // Should not throw and should not emit raw "alienType" text into the page
         Assert.DoesNotContain("alienType", html);
     }
+
+    [Fact]
+    public void Render_list_with_item_objects_renders_name_and_body()
+    {
+        var json = """
+        {"type":"list","items":[
+          {"type":"item","name":"Necrotic Shroud","entry":"Dark wings sprout."},
+          {"type":"item","name":"Radiant Consumption","entries":["Light radiates from eyes."]}
+        ]}
+        """;
+        var html = EntryRenderer.Render(Parse(json));
+        Assert.Contains("<strong>Necrotic Shroud.</strong>", html);
+        Assert.Contains("Dark wings sprout.", html);
+        Assert.Contains("<strong>Radiant Consumption.</strong>", html);
+        Assert.Contains("Light radiates from eyes.", html);
+        // No empty bullets
+        Assert.DoesNotContain("<li></li>", html);
+    }
+
+    [Fact]
+    public void Render_list_with_string_items_unchanged()
+    {
+        var json = "{\"type\":\"list\",\"items\":[\"a\",\"b\"]}";
+        var html = EntryRenderer.Render(Parse(json));
+        Assert.Contains("<li>a</li>", html);
+        Assert.Contains("<li>b</li>", html);
+    }
 }

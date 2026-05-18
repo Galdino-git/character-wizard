@@ -185,11 +185,34 @@ public static partial class EntryRenderer
         {
             "entries" or "section" => RenderEntriesBlock(obj),
             "list"                  => RenderList(obj),
-            "inset" or "insetReadaloud" => RenderInset(obj),
+            "inset" or "insetreadaloud" => RenderInset(obj),
             "table"                 => RenderTable(obj),
             "quote"                 => RenderQuote(obj),
+            "item" or "itemsub" or "itemspell" => RenderItem(obj),
             _                       => "",
         };
+    }
+
+    /// <summary>
+    /// Renders an "item" entry — a 5etools list-item with a bold name followed
+    /// by body text. Used inside `list` entries with structured items
+    /// (e.g. Aasimar's Necrotic Shroud / Radiant Consumption / Radiant Soul).
+    /// Returns inline HTML (no &lt;li&gt; wrapper — the caller in RenderList adds that).
+    /// </summary>
+    private static string RenderItem(JsonElement obj)
+    {
+        var sb = new StringBuilder();
+        if (obj.TryGetProperty("name", out var nameEl) && nameEl.ValueKind == JsonValueKind.String)
+            sb.Append($"<strong>{RenderString(nameEl.GetString())}.</strong> ");
+
+        // Per 5etools convention, an item has either "entry" (singular string)
+        // or "entries" (array of mixed nodes). Both shapes are real in the wild.
+        if (obj.TryGetProperty("entry", out var entryEl))
+            sb.Append(Render(entryEl));
+        else if (obj.TryGetProperty("entries", out var entriesEl))
+            sb.Append(Render(entriesEl));
+
+        return sb.ToString();
     }
 
     private static string RenderEntriesBlock(JsonElement obj)
