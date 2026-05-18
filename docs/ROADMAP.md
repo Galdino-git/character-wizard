@@ -153,3 +153,24 @@ Subir o ZIP via web UI:
 - Auto-update via internet
 - Cross-platform
 - GitHub Actions CI
+
+---
+
+## ✅ M5 — Plan Closure / Mechanical Completeness (entregue 2026-05-17)
+
+Spec: [`docs/specs/m5-plan-closure.md`](specs/m5-plan-closure.md) · Tasks: [`docs/tasks/m5-plan-closure.md`](tasks/m5-plan-closure.md)
+
+Cross-check do plano original. Fechamento dos 7 gaps identificados (vermelhos + amarelos do diagnóstico).
+
+- [x] **F18** `HitPointCalculator` + widget de HP máximo / Proficiência / Nível na Ficha (5 testes)
+- [x] **F19** Step "Escolhas por nível" no wizard quando `InitialLevel > 1` — HP, ASI/feat por nível, persistidos em `HitPointRolls` + `ChoicesByLevel`
+- [x] **F20** Aba "Spells" no `CharacterView` com tabela de slots, lista de cantrips/spells conhecidos agrupada por nível, toggle preparados (Wizard/Cleric/Druid/Paladin/Artificer), DC e atq computados; `SpellPickerModal`
+- [x] **F21** Métodos extras de ability scores: **Point-buy** (TDD: cost table PHB, budget 27) e **Roll 4d6 drop lowest** (TDD: range 3-18, determinístico); 7 testes novos
+- [x] **F22** Painel lateral de preview em Race/Class/Background — layout 2 colunas com `EntryDisplay` da seleção atual
+- [x] **F23** `ProficiencyResolver` para saving throws (TDD: RAW multiclass usa saves da 1ª classe; 2 testes) + widget de saves na Ficha com ★ para proficient
+- [x] **F24** Botão "Recarregar catálogo" em Settings + refactor de repos com `ICatalogSource` (hot-reload propaga em todos os repos sem restart)
+- [x] **F26** Auto-tracking de `LastOpenedCharacterId` + botão "Reabrir <Nome>" na Home
+- [ ] **F25** Refactor `CharacterCreationService`/`LevelUpService` — deferido como opcional desde o início
+
+### Métrica
+**145 testes verdes** (+27 desde M4: 5 HitPoint + 2 ProficiencyResolver + 4 PointBuy + 3 AbilityRoller + cobertura adicional).
