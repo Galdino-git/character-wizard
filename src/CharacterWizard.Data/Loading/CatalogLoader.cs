@@ -29,14 +29,18 @@ public sealed class CatalogLoader
         var itemsBase   = LoadCollection<ItemData>(paths.ItemsBase, "baseitem");
         var feats       = LoadCollection<FeatData>(paths.Feats, "feat");
 
-        var classes    = new List<ClassData>();
-        var subclasses = new List<SubclassData>();
+        var classes         = new List<ClassData>();
+        var subclasses      = new List<SubclassData>();
+        var classFeatures   = new List<ClassFeatureEntry>();
+        var subclassFeatures = new List<SubclassFeatureEntry>();
         if (Directory.Exists(paths.ClassesFolder))
         {
             foreach (var file in Directory.EnumerateFiles(paths.ClassesFolder, "class-*.json"))
             {
                 classes.AddRange(LoadCollection<ClassData>(file, "class"));
                 subclasses.AddRange(LoadCollection<SubclassData>(file, "subclass"));
+                classFeatures.AddRange(LoadCollection<ClassFeatureEntry>(file, "classFeature"));
+                subclassFeatures.AddRange(LoadCollection<SubclassFeatureEntry>(file, "subclassFeature"));
             }
         }
 
@@ -49,6 +53,11 @@ public sealed class CatalogLoader
 
         var mergedItems = items.Concat(itemsBase).ToList();
         var spellListIndex = ClassSpellListIndex.LoadFrom(paths.SpellSourceLookup);
+
+        var conditions = LoadCollection<GlossaryEntry>(paths.ConditionsDiseases, "condition");
+        var skills     = LoadCollection<GlossaryEntry>(paths.Skills,             "skill");
+        var actions    = LoadCollection<GlossaryEntry>(paths.Actions,            "action");
+        var senses     = LoadCollection<GlossaryEntry>(paths.Senses,             "sense");
 
         return new Catalog
         {
@@ -63,6 +72,12 @@ public sealed class CatalogLoader
             Spells = spells,
             Items = mergedItems,
             Feats = feats,
+            Conditions = conditions,
+            Skills = skills,
+            Actions = actions,
+            Senses = senses,
+            ClassFeatures = classFeatures,
+            SubclassFeatures = subclassFeatures,
         };
     }
 

@@ -13,13 +13,25 @@ public class EntityResolverTests
         if (dataRoot is null) return null;
         var catalog = new CatalogLoader().Load(dataRoot);
         var filter = new SourceFilter(catalog, SourceFilterSettings.AllowAll());
+        // EntityResolver now also needs ICatalogSource — use the explicit ctor
+        // to wrap our test-mode catalog+filter.
+        var src = new TestCatalogSource(catalog, filter);
         return new EntityResolver(
-            new RaceRepository(catalog, filter),
-            new ClassRepository(catalog, filter),
-            new BackgroundRepository(catalog, filter),
-            new SpellRepository(catalog, filter),
-            new ItemRepository(catalog, filter),
-            new FeatRepository(catalog, filter));
+            new RaceRepository(src),
+            new ClassRepository(src),
+            new BackgroundRepository(src),
+            new SpellRepository(src),
+            new ItemRepository(src),
+            new FeatRepository(src),
+            src);
+    }
+
+    private sealed class TestCatalogSource : CharacterWizard.Data.Repositories.ICatalogSource
+    {
+        public Catalog Catalog { get; }
+        public CharacterWizard.Data.Filtering.SourceFilter Filter { get; }
+        public TestCatalogSource(Catalog c, CharacterWizard.Data.Filtering.SourceFilter f)
+        { Catalog = c; Filter = f; }
     }
 
     [Fact]
@@ -72,6 +84,41 @@ public class EntityResolverTests
 
         var hit = r.Resolve("SPELL", "Fireball", "PHB");
         Assert.NotNull(hit);
+    }
+
+    [Fact]
+    public void Resolve_skill_returns_entry()
+    {
+        var r = BuildResolver();
+        if (r is null) return;
+
+        var hit = r.Resolve("skill", "Perception", "PHB");
+        Assert.NotNull(hit);
+        Assert.Equal("Skill", hit!.Category);
+    }
+
+    [Fact]
+    public void Resolve_condition_returns_entry()
+    {
+        var r = BuildResolver();
+        if (r is null) return;
+
+        var hit = r.Resolve("condition", "Prone", "PHB");
+        Assert.NotNull(hit);
+    }
+
+    [Fact]
+    public void Resolve_class_returns_synthesized_entries()
+    {
+        var r = BuildResolver();
+        if (r is null) return;
+
+        var hit = r.Resolve("class", "Wizard", "PHB");
+        Assert.NotNull(hit);
+        Assert.Equal("Class", hit!.Category);
+        Assert.NotNull(hit.Entries);
+        Assert.Equal(System.Text.Json.JsonValueKind.Array, hit.Entries!.Value.ValueKind);
+        Assert.True(hit.Entries.Value.GetArrayLength() > 0, "Class entries should not be empty");
     }
 }
 

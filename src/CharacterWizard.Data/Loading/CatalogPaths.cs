@@ -26,6 +26,9 @@ public sealed class CatalogPaths
     public string Feats              => Path.Combine(JsonRoot, "feats.json");
     public string OptionalFeatures   => Path.Combine(JsonRoot, "optionalfeatures.json");
     public string ConditionsDiseases => Path.Combine(JsonRoot, "conditionsdiseases.json");
+    public string Skills             => Path.Combine(JsonRoot, "skills.json");
+    public string Actions            => Path.Combine(JsonRoot, "actions.json");
+    public string Senses             => Path.Combine(JsonRoot, "senses.json");
 
     public string ClassesFolder => Path.Combine(JsonRoot, "class");
     public string SpellsFolder  => Path.Combine(JsonRoot, "spells");
