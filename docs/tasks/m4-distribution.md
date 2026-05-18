@@ -1,5 +1,7 @@
 # Tasks: Distribution (M4)
 
+> Status: **completed** (T6 last step: upload manual do ZIP via GitHub web UI — sem gh CLI instalado).
+
 Spec: [`../specs/m4-distribution.md`](../specs/m4-distribution.md) · Design: [`../design/m4-distribution.md`](../design/m4-distribution.md)
 
 Tudo simples — sem mudança no código do app.
